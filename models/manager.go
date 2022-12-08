@@ -8,19 +8,22 @@ import (
 	"github.com/d2jvkpn/go-web/pkg/wrap"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type Manager struct {
-	cron  *cron.Cron
-	Pid   int
-	tasks []*Task
+	cron   *cron.Cron
+	Pid    int
+	logger *zap.Logger
+	tasks  []*Task
 }
 
-func NewManager() *Manager {
+func NewManager(logger *zap.Logger) *Manager {
 	return &Manager{
-		cron:  cron.New(),
-		Pid:   os.Getpid(),
-		tasks: make([]*Task, 0, 8),
+		cron:   cron.New(),
+		Pid:    os.Getpid(),
+		logger: logger,
+		tasks:  make([]*Task, 0, 8),
 	}
 }
 
@@ -33,6 +36,8 @@ func (m *Manager) AddTask(item Task) (err error) {
 		return err
 	}
 
+	item.Status = Created
+	item.logger = m.logger.Named(fmt.Sprintf("task %d", item.Id))
 	m.tasks = append(m.tasks, &item)
 
 	return nil
@@ -44,11 +49,11 @@ func (m *Manager) LoadTasksFronConfig(p, field string) (num int, err error) {
 		tasks []Task
 	)
 
-	if cv, err = wrap.OpenConfig("configs/test.yaml"); err != nil {
+	if cv, err = wrap.OpenConfig(p); err != nil {
 		return 0, err
 	}
 
-	if err = cv.UnmarshalKey("jobs", &tasks); err != nil {
+	if err = cv.UnmarshalKey(field, &tasks); err != nil {
 		return 0, err
 	}
 
@@ -111,13 +116,19 @@ func (m *Manager) Start() {
 			m.tasks[i].Run()
 		}
 	}
+
+	m.logger.Info("Start Cron", zap.Int("pid", m.Pid), zap.Int("numberOfTasks", len(m.tasks)))
 	m.cron.Start()
 }
 
 func (m *Manager) Shutdown() {
 	m.cron.Stop()
+	num := 0
 
 	for _, v := range m.tasks {
-		v.Remove()
+		if v.Remove() {
+			num++
+		}
 	}
+	m.logger.Info("Shutdown Cron", zap.Int("numberOfTasks", num))
 }

@@ -10,7 +10,6 @@ import (
 	"crons/models"
 
 	"github.com/d2jvkpn/go-web/pkg/wrap"
-	"go.uber.org/zap"
 )
 
 func main() {
@@ -42,18 +41,11 @@ func main() {
 
 	logger = wrap.NewLogger("logs/crons.log", wrap.LogLevelFromStr(logLevel), 256, nil)
 
-	manager = models.NewManager()
+	manager = models.NewManager(logger.Named("manager"))
 	num, err = manager.LoadTasksFronConfig(config, "jobs")
 	okOrExit(err)
 
 	fmt.Printf(">>> Start Cron: pid=%d, numberOfTasks=%d, dryrun=%t\n", manager.Pid, num, dryrun)
-
-	logger.Info(
-		">>> Start Cron",
-		zap.Int("pid", manager.Pid),
-		zap.Int("numberOfTasks", num),
-		zap.Bool("dryrun", dryrun),
-	)
 
 	if !dryrun {
 		manager.Start()
@@ -67,6 +59,5 @@ func main() {
 		fmt.Println("")
 		manager.Shutdown()
 		fmt.Println("<<< Stop Cron")
-		logger.Info("<<< Stop Cron")
 	}
 }

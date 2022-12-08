@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
+	"go.uber.org/zap"
 )
 
 type Status string
@@ -72,8 +73,9 @@ type Task struct {
 	Status    Status       `json:"status,omitempty"`
 	Error     string       `json:"error,omitempty"`
 
-	cmd   *exec.Cmd
-	mutex *sync.RWMutex
+	cmd    *exec.Cmd
+	mutex  *sync.RWMutex
+	logger *zap.Logger
 }
 
 type Cron struct {
@@ -139,7 +141,7 @@ func (item *Task) updateStatus(status Status, err error) (ok bool) {
 	from := item.Status
 
 	switch status {
-	case Running:
+	case Created, Running:
 		ok = true
 	case Failed, Cancelled, Removed:
 		if item.Status == Running {
@@ -159,7 +161,12 @@ func (item *Task) updateStatus(status Status, err error) (ok bool) {
 		}
 	}
 
-	fmt.Printf("~~~ Task %d update status: %s -> %s, %v\n", item.Id, from, status, err)
+	item.logger.Warn(
+		"update status",
+		zap.String("from", string(from)),
+		zap.String("from", string(status)),
+		zap.String("error", item.Error),
+	)
 
 	return ok
 }
@@ -188,6 +195,7 @@ func (item *Task) Run() {
 
 	go func() {
 		var (
+			pid    int
 			err    error
 			status Status
 		)
@@ -201,15 +209,18 @@ func (item *Task) Run() {
 			item.UpdateStatus(Cancelled, err)
 		}
 
-		fmt.Printf("~~~ Task %d start\n", item.Id)
-		if err = item.cmd.Start(); err != nil {
+		err = item.cmd.Start()
+		if err != nil {
+			item.logger.Warn("start status", zap.String("error", err.Error()))
 			item.UpdateStatus(Failed, err)
 			return
 		}
 		item.UpdateStatus(Running, nil)
-		if item.cmd.Process != nil {
-			item.Pid = item.cmd.Process.Pid
+		if pid = 0; item.cmd.Process != nil {
+			pid = item.cmd.Process.Pid
+			item.Pid = pid
 		}
+		item.logger.Warn("start status", zap.Int("pid", pid))
 
 		if err = item.cmd.Wait(); err != nil {
 			item.UpdateStatus(Failed, err)
@@ -219,13 +230,14 @@ func (item *Task) Run() {
 	}()
 }
 
-func (item *Task) Remove() {
+func (item *Task) Remove() bool {
 	if item.GetStatus() != Running {
-		return
+		return false
 	}
 
 	item.mutex.Lock()
 	item.cmd.Process.Kill() // TODO send a term signal to process
 	item.updateStatus(Removed, nil)
 	item.mutex.Unlock()
+	return true
 }
