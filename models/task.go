@@ -225,14 +225,12 @@ func (item *Task) Run() {
 			}
 
 			if err = item.cmd.Start(); err != nil {
-				item.logger.Error("start failed", zap.String("error", err.Error()))
 				item.UpdateStatus(Failed, err)
 			} else {
 				break
 			}
 		}
 		if err != nil {
-			item.logger.Error("abort task", zap.Uint("retryTimes", item.Restart))
 			return
 		}
 
