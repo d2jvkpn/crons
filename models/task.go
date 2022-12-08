@@ -61,9 +61,6 @@ type Task struct {
 
 	StartImmediately bool `mapstructure:"start_immediately" json:"startImmediately,omitempty"`
 	Restart          uint `mapstructure:"restart" json:"restart,omitempty"`
-	// AllowOverlap     bool `mapstructure:"allow_overlap" json:"allowOverlap,omitempty"`
-	// ?? Times int             // => max run times
-	// ?? Timeout time.Duration // => timeout for each run
 
 	Id        cron.EntryID `json:"id,omitempty"`
 	StartAt   time.Time    `json:"startAt,omitempty"`

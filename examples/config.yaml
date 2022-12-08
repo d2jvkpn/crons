@@ -14,6 +14,3 @@ jobs:
   restart: 0
   # delay: time.Duration
   start_immediately: true
-  # allow_overlap: false
-  # ?? times: 5     => max run times
-  # ?? timeout: 60s => timeout for each run
