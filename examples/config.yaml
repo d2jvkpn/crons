@@ -1,0 +1,19 @@
+jobs:
+# required: name, path, cron
+- name: Sleep
+  path: sleep
+  args: [30]
+  workdir: ""
+  # https://crontab.guru/#00_00_*_*_1
+  cron:
+    minute: "0"
+    hour: "0"
+    month_day: "*"
+    month: "*"
+    week_day: "1"
+  restart: -1
+  # delay: time.Duration
+  start_immediately: true
+  # allow_overlap: false
+  # ?? times: 5     => max run times
+  # ?? timeout: 60s => timeout for each run
