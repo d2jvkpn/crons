@@ -164,7 +164,7 @@ func (item *Task) updateStatus(status Status, err error) (ok bool) {
 	item.logger.Warn(
 		"update status",
 		zap.String("from", string(from)),
-		zap.String("from", string(status)),
+		zap.String("to", string(status)),
 		zap.String("error", item.Error),
 	)
 
