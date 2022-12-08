@@ -11,7 +11,7 @@ jobs:
     month_day: "*"
     month: "*"
     week_day: "1"
-  restart: -1
+  restart: 0
   # delay: time.Duration
   start_immediately: true
   # allow_overlap: false

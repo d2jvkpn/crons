@@ -37,8 +37,10 @@ func (m *Manager) AddTask(item Task) (err error) {
 	}
 
 	item.Status = Created
-	item.logger = m.logger.Named(fmt.Sprintf("task %d", item.Id))
+	item.logger = m.logger.Named(fmt.Sprintf("task_%d", item.Id))
 	m.tasks = append(m.tasks, &item)
+
+	m.logger.Info("add task", zap.Any("task", item))
 
 	return nil
 }
@@ -82,12 +84,15 @@ func (m *Manager) RemoveTask(id int) (err error) {
 		}
 	}
 	if task == nil {
+		m.logger.Warn("task not found", zap.Int("id", id))
 		return fmt.Errorf("task not found")
 	}
 
 	m.cron.Remove(eId)
 	task.Remove()
 	m.tasks = append(m.tasks[:idx], m.tasks[idx+1:]...)
+	m.logger.Warn("remove task", zap.Int("id", id))
+
 	return nil
 }
 

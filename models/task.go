@@ -60,7 +60,7 @@ type Task struct {
 	Cron    Cron     `mapstructure:"cron" json:"cron,omitempty"` //*
 
 	StartImmediately bool `mapstructure:"start_immediately" json:"startImmediately,omitempty"`
-	Restart          int  `mapstructure:"restart" json:"restart,omitempty"`
+	Restart          uint `mapstructure:"restart" json:"restart,omitempty"`
 	// AllowOverlap     bool `mapstructure:"allow_overlap" json:"allowOverlap,omitempty"`
 	// ?? Times int             // => max run times
 	// ?? Timeout time.Duration // => timeout for each run
@@ -154,19 +154,29 @@ func (item *Task) updateStatus(status Status, err error) (ok bool) {
 		}
 	}
 
-	if ok {
-		item.Status, item.UpdatedAt = status, time.Now()
-		if err != nil {
-			item.Error = err.Error()
-		}
+	if err != nil {
+		item.Error = err.Error()
 	}
 
-	item.logger.Warn(
-		"update status",
-		zap.String("from", string(from)),
+	fields := []zap.Field{zap.String("from", string(from)),
 		zap.String("to", string(status)),
-		zap.String("error", item.Error),
-	)
+		zap.String("error", item.Error)}
+
+	if !ok {
+		item.logger.Warn("can't update status", fields...)
+		return
+	}
+
+	item.Status, item.UpdatedAt = status, time.Now()
+
+	switch status {
+	case Failed:
+		item.logger.Error("update status", fields...)
+	case Cancelled, Removed:
+		item.logger.Warn("update status", fields...)
+	default:
+		item.logger.Info("update status", fields...)
+	}
 
 	return ok
 }
@@ -209,18 +219,29 @@ func (item *Task) Run() {
 			item.UpdateStatus(Cancelled, err)
 		}
 
-		err = item.cmd.Start()
+		for i := 0; i < int(item.Restart)+1; i++ {
+			if i > 0 {
+				time.Sleep(3 * time.Second)
+			}
+
+			if err = item.cmd.Start(); err != nil {
+				item.logger.Error("start failed", zap.String("error", err.Error()))
+				item.UpdateStatus(Failed, err)
+			} else {
+				break
+			}
+		}
 		if err != nil {
-			item.logger.Warn("start", zap.String("error", err.Error()))
-			item.UpdateStatus(Failed, err)
+			item.logger.Error("abort task", zap.Uint("retryTimes", item.Restart))
 			return
 		}
+
 		item.UpdateStatus(Running, nil)
 		if pid = 0; item.cmd.Process != nil {
 			pid = item.cmd.Process.Pid
 			item.Pid = pid
 		}
-		item.logger.Warn("start", zap.Int("pid", pid))
+		item.logger.Info("started task", zap.Int("pid", pid))
 
 		if err = item.cmd.Wait(); err != nil {
 			item.UpdateStatus(Failed, err)
