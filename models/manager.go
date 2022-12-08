@@ -69,7 +69,7 @@ func (m *Manager) LoadTasksFronConfig(p, field string) (num int, err error) {
 	return num, nil
 }
 
-func (m *Manager) RemoveTask(id int) (err error) {
+func (m *Manager) RemoveTask(id int, by, reason string) (err error) {
 	var (
 		idx  int
 		eId  cron.EntryID
@@ -89,7 +89,7 @@ func (m *Manager) RemoveTask(id int) (err error) {
 	}
 
 	m.cron.Remove(eId)
-	task.Remove()
+	task.Remove(by, reason)
 	m.tasks = append(m.tasks[:idx], m.tasks[idx+1:]...)
 	m.logger.Warn("remove task", zap.Int("id", id))
 
@@ -130,7 +130,7 @@ func (m *Manager) Shutdown() {
 	m.cron.Stop()
 
 	for _, v := range m.tasks {
-		_ = v.Remove()
+		_ = v.Remove("manager", "shutdown")
 	}
 	m.logger.Info("Shutdown Cron", zap.Int("numberOfTasks", len(m.tasks)))
 }

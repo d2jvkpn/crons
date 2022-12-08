@@ -247,14 +247,14 @@ func (item *Task) Run() {
 	}()
 }
 
-func (item *Task) Remove() bool {
+func (item *Task) Remove(by, reason string) bool {
 	if item.GetStatus() != Running {
 		return false
 	}
 
 	item.mutex.Lock()
 	item.cmd.Process.Kill() // TODO send a term signal to process
-	item.updateStatus(Removed, nil)
+	item.updateStatus(Removed, fmt.Errorf("by: %q, reason: %q", by, reason))
 	item.mutex.Unlock()
 	return true
 }
