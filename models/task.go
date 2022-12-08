@@ -211,7 +211,7 @@ func (item *Task) Run() {
 
 		err = item.cmd.Start()
 		if err != nil {
-			item.logger.Warn("start status", zap.String("error", err.Error()))
+			item.logger.Warn("start", zap.String("error", err.Error()))
 			item.UpdateStatus(Failed, err)
 			return
 		}
@@ -220,7 +220,7 @@ func (item *Task) Run() {
 			pid = item.cmd.Process.Pid
 			item.Pid = pid
 		}
-		item.logger.Warn("start status", zap.Int("pid", pid))
+		item.logger.Warn("start", zap.Int("pid", pid))
 
 		if err = item.cmd.Wait(); err != nil {
 			item.UpdateStatus(Failed, err)
