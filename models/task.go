@@ -231,6 +231,7 @@ func (item *Task) Run() {
 			}
 		}
 		if err != nil {
+			item.logger.Error("abort task", zap.Uint("retryTimes", item.Restart))
 			return
 		}
 
