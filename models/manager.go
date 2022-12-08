@@ -128,12 +128,9 @@ func (m *Manager) Start() {
 
 func (m *Manager) Shutdown() {
 	m.cron.Stop()
-	num := 0
 
 	for _, v := range m.tasks {
-		if v.Remove() {
-			num++
-		}
+		_ = v.Remove()
 	}
-	m.logger.Info("Shutdown Cron", zap.Int("numberOfTasks", num))
+	m.logger.Info("Shutdown Cron", zap.Int("numberOfTasks", len(m.tasks)))
 }
