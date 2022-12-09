@@ -3,7 +3,6 @@ package crons
 import (
 	// "context"
 	"fmt"
-	"os"
 
 	"github.com/d2jvkpn/go-web/pkg/wrap"
 	"github.com/robfig/cron/v3"
@@ -13,7 +12,6 @@ import (
 
 type Manager struct {
 	cron   *cron.Cron
-	Pid    int
 	logger *wrap.Logger
 	tasks  []*Task
 }
@@ -21,7 +19,6 @@ type Manager struct {
 func NewManager(logger *wrap.Logger) *Manager {
 	return &Manager{
 		cron:   cron.New(),
-		Pid:    os.Getpid(),
 		logger: logger,
 		tasks:  make([]*Task, 0, 8),
 	}
@@ -113,7 +110,7 @@ func (m *Manager) Start() {
 		}
 	}
 
-	m.logger.Info("Start Cron", zap.Int("pid", m.Pid), zap.Int("numberOfTasks", len(m.tasks)))
+	m.logger.Info("Start Cron", zap.Int("numberOfTasks", len(m.tasks)))
 	m.cron.Start()
 }
 
