@@ -3,8 +3,7 @@ package crons
 import (
 	"fmt"
 	"testing"
-
-	. "github.com/stretchr/testify/require"
+	// . "github.com/stretchr/testify/require"
 )
 
 type Data struct {
@@ -12,22 +11,22 @@ type Data struct {
 	b *string
 }
 
-func TestStatus(t *testing.T) {
-	var (
-		bts    []byte
-		err    error
-		status Status
-	)
+//func TestStatus(t *testing.T) {
+//	var (
+//		bts    []byte
+//		err    error
+//		status Status
+//	)
 
-	status = Created
-	bts, err = status.MarshalJSON()
-	NoError(t, err)
-	EqualValues(t, bts, []byte("created"))
+//	status = Created
+//	bts, err = status.MarshalJSON()
+//	NoError(t, err)
+//	EqualValues(t, bts, []byte("created"))
 
-	status = Status("unknown")
-	_, err = status.MarshalJSON()
-	Error(t, err)
-}
+//	status = Status("unknown")
+//	_, err = status.MarshalJSON()
+//	Error(t, err)
+//}
 
 func TestData(t *testing.T) {
 	s1 := &Data{A: "hello", b: new(string)}

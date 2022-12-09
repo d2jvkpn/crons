@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/d2jvkpn/go-web/pkg/resp"
 	"github.com/d2jvkpn/go-web/pkg/wrap"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,7 @@ import (
 func Load(release bool) (err error) {
 	var (
 		engi *gin.Engine
-		// rg   *gin.RouterGroup
+		rg   *gin.RouterGroup
 		tmpl *template.Template
 	)
 
@@ -32,7 +33,7 @@ func Load(release bool) (err error) {
 	} else {
 		engi = gin.Default()
 	}
-	// rg = &engi.RouterGroup
+	rg = &engi.RouterGroup
 
 	// engi.LoadHTMLGlob("templates/*.tmpl")
 	tmpl, err = template.ParseFS(_Templates, "templates/*.html", "templates/*/*.html")
@@ -41,6 +42,11 @@ func Load(release bool) (err error) {
 	}
 	engi.SetHTMLTemplate(tmpl)
 	engi.Use(wrap.Cors("*"))
+
+	apiLogger := resp.NewLogHandler[any](_Logger, "api")
+
+	rg.GET("/healthz", wrap.Healthz)
+	LoadAPI(rg, apiLogger)
 
 	_Server = &http.Server{ // TODO: set consts in base.go
 		ReadTimeout:       HTTP_ReadTimeout,

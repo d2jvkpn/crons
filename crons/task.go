@@ -23,26 +23,26 @@ const (
 	Done      Status = "done"
 )
 
-func (s *Status) MarshalJSON() ([]byte, error) {
-	switch *s {
-	case Created, Running, Failed, Cancelled, Removed, Done:
-		return []byte(string(*s)), nil
-	default:
-		return nil, fmt.Errorf("unknow status: %v", s)
-	}
-}
+//func (s *Status) MarshalJSON() ([]byte, error) {
+//	switch *s {
+//	case Created, Running, Failed, Cancelled, Removed, Done:
+//		return []byte(string(*s)), nil
+//	default:
+//		return nil, fmt.Errorf("unknow status: %v", s)
+//	}
+//}
 
-func (s *Status) UnmarshalJSON(data []byte) error {
-	status := Status(string(data))
-	switch status {
-	case Created, Running, Failed, Cancelled, Done, Removed:
-		*s = status
-	default:
-		return fmt.Errorf("invalid status")
-	}
+//func (s *Status) UnmarshalJSON(data []byte) error {
+//	status := Status(string(data))
+//	switch status {
+//	case Created, Running, Failed, Cancelled, Done, Removed:
+//		*s = status
+//	default:
+//		return fmt.Errorf("invalid status")
+//	}
 
-	return nil
-}
+//	return nil
+//}
 
 type Task struct {
 	Name    string   `mapstructure:"name" json:"name,omitempty"` //*
@@ -90,6 +90,11 @@ func (item *Task) Clone(clear bool) (task Task) {
 }
 
 func (item *Task) Compile() (err error) {
+	var at time.Time
+	item.Id = cron.EntryID(0)
+	item.StartAt, item.UpdatedAt = at, at
+	item.Pid, item.Status, item.Error = 0, Created, ""
+
 	if item.Name == "" {
 		return fmt.Errorf("name is empty")
 	}
