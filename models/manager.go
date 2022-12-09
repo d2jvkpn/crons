@@ -37,7 +37,7 @@ func (m *Manager) AddTask(item Task) (err error) {
 	}
 
 	item.Status = Created
-	item.logger = m.logger.Named(fmt.Sprintf("task_%d", item.Id))
+	item.WithLogger(m.logger.Named(fmt.Sprintf("EntryId_%d", item.Id)))
 	m.tasks = append(m.tasks, &item)
 
 	m.logger.Info("add task", zap.Any("task", item))

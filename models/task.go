@@ -103,6 +103,11 @@ func (item *Task) Compile() (err error) {
 	return nil
 }
 
+func (item *Task) WithLogger(logger *zap.Logger) *Task {
+	item.logger = logger
+	return item
+}
+
 func (item *Cron) cronExpr() string {
 	if v := &item.Minute; *v == "" {
 		*v = "*"
