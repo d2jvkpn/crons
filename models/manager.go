@@ -96,18 +96,11 @@ func (m *Manager) RemoveTask(id int, by, reason string) (err error) {
 	return nil
 }
 
-func (m *Manager) CloneTasks() (tasks []Task) {
+func (m *Manager) CloneTasks(clear bool) (tasks []Task) {
 	tasks = make([]Task, 0, len(m.tasks))
 
 	for i := range m.tasks {
-		v := m.tasks[i]
-		if v.GetStatus() == Removed {
-			continue
-		}
-
-		t := *v
-		t.cmd, t.mutex = nil, nil
-		tasks = append(tasks, t)
+		tasks = append(tasks, m.tasks[i].Clone(clear))
 	}
 
 	return tasks

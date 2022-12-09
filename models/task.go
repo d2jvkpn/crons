@@ -33,19 +33,10 @@ func (s *Status) MarshalJSON() ([]byte, error) {
 }
 
 func (s *Status) UnmarshalJSON(data []byte) error {
-	switch Status(string(data)) {
-	case Created:
-		*s = Created
-	case Running:
-		*s = Running
-	case Failed:
-		*s = Failed
-	case Cancelled:
-		*s = Cancelled
-	case Removed:
-		*s = Removed
-	case Done:
-		*s = Done
+	status := Status(string(data))
+	switch status {
+	case Created, Running, Failed, Cancelled, Done, Removed:
+		*s = status
 	default:
 		return fmt.Errorf("invalid status")
 	}
@@ -82,6 +73,20 @@ type Cron struct {
 	MonthDay string `mapstructure:"month_day" json:"monthDay,omitempty"`
 	Month    string `mapstructure:"month" json:"month,omitempty"`
 	WeekDay  string `mapstructure:"week_day" json:"weekDay,omitempty"`
+}
+
+func (item *Task) Clone(clear bool) (task Task) {
+	task = *item
+	task.cmd, task.mutex, task.logger = nil, nil, nil
+	if !clear {
+		return
+	}
+
+	var at time.Time
+	task.Id = cron.EntryID(0)
+	task.StartAt, task.UpdatedAt = at, at
+	task.Pid, task.Status, task.Error = 0, Created, ""
+	return
 }
 
 func (item *Task) Compile() (err error) {

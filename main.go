@@ -57,7 +57,7 @@ func main() {
 
 	select {
 	case sig := <-quit:
-		logger.Warn("receive signal", zap.Any("signal", sig))
+		logger.Warn("received signal", zap.Any("signal", sig))
 		fmt.Println("")
 		manager.Shutdown()
 		fmt.Println("<<< Stop Cron")
