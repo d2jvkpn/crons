@@ -1,0 +1,38 @@
+{{ define "page_not_found" }}
+
+﻿<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title> Page Not Found </title>
+
+  <link type="text/css" rel="stylesheet" href="/static/css/not_found.css">
+
+  <script type="text/javascript" src="/static/js/a01.js"></script>
+  <script type="text/javascript" src="/static/js/a02.js"></script>
+
+  <script type="module">
+    import { hello } from '/static/js/m01.js';
+
+    hello();
+  </script>
+
+  <!--style>
+    .center {
+      font-size: 24px;
+      text-align: center;
+    }
+  </style-->
+</head>
+
+<body onload="load()">
+  <div class="center">
+    <p> Sorry, Page Not Found!</p>
+  </div>
+</body>
+</html>
+
+{{ end }}

@@ -1,4 +1,4 @@
-package models
+package crons
 
 import (
 	// "context"
@@ -14,11 +14,11 @@ import (
 type Manager struct {
 	cron   *cron.Cron
 	Pid    int
-	logger *zap.Logger
+	logger *wrap.Logger
 	tasks  []*Task
 }
 
-func NewManager(logger *zap.Logger) *Manager {
+func NewManager(logger *wrap.Logger) *Manager {
 	return &Manager{
 		cron:   cron.New(),
 		Pid:    os.Getpid(),
@@ -125,4 +125,5 @@ func (m *Manager) Shutdown() {
 		_ = v.Remove("manager", "shutdown")
 	}
 	m.logger.Info("Shutdown Cron", zap.Int("numberOfTasks", len(m.tasks)))
+	m.logger.Down()
 }

@@ -3,63 +3,75 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"crons/models"
+	"crons/internal"
 
-	"github.com/d2jvkpn/go-web/pkg/wrap"
-	"go.uber.org/zap"
+	"github.com/d2jvkpn/go-web/pkg/misc"
 )
 
 func main() {
 	var (
-		config   string
-		logLevel string
-		num      int
-		dryrun   bool
-		err      error
-		logger   *wrap.Logger
-		manager  *models.Manager
+		num     int
+		release bool
+		addr    string
+		config  string
+		err     error
 	)
 
 	flag.StringVar(&config, "config", "configs/test.yaml", "tasks config file")
-	flag.BoolVar(&dryrun, "dryrun", false, "dry run")
-	flag.StringVar(&logLevel, "logLevel", "info", "log level")
+	flag.StringVar(&addr, "addr", ":3011", "http serve address")
+	flag.BoolVar(&release, "release", false, "run in release mode")
 	flag.Parse()
 
 	okOrExit := func(err error) {
-		logger.Down()
 		if err == nil {
 			return
 		}
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 
 	// err = os.Chdir(filepath.Dir(os.Args[0]))
 	// okOrExit(err)
-
-	logger = wrap.NewLogger("logs/crons.log", wrap.LogLevelFromStr(logLevel), 256, nil)
-
-	manager = models.NewManager(logger.Named("manager"))
-	num, err = manager.LoadTasksFronConfig(config, "jobs")
-	okOrExit(err)
-
-	fmt.Printf(">>> Start Cron: pid=%d, numberOfTasks=%d, dryrun=%t\n", manager.Pid, num, dryrun)
-	if !dryrun {
-		manager.Start()
+	parameters := map[string]any{
+		"--config":  config,
+		"--addr":    addr,
+		"--release": release,
+	}
+	for k, v := range misc.BuildInfo() {
+		parameters[k] = v
 	}
 
-	quit := make(chan os.Signal, 1)
+	num, err = internal.LoadCron(config, "jobs")
+	okOrExit(err)
+	err = internal.Load(release)
+	okOrExit(err)
+
+	errch, quit := make(chan error, 1), make(chan os.Signal, 1)
+
+	go func() {
+		var err error
+		log.Printf(">>> HTTP server listening on %s, number Of cron tasks: %d\n", addr, num)
+		err = internal.Serve(addr, parameters)
+		errch <- err
+	}()
+
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
 	select {
+	case err = <-errch:
 	case sig := <-quit:
-		logger.Warn("received signal", zap.Any("signal", sig))
 		fmt.Println("")
-		manager.Shutdown()
-		fmt.Println("<<< Stop Cron")
+		log.Println("received signal:", sig)
+		internal.Shutdown()
+		err = <-errch
+		log.Println("<<< Stop Cron")
+	}
+
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
