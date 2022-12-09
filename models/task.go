@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/d2jvkpn/go-web/pkg/misc"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
@@ -60,7 +61,7 @@ type Task struct {
 	Cron    Cron     `mapstructure:"cron" json:"cron,omitempty"` //*
 
 	StartImmediately bool `mapstructure:"start_immediately" json:"startImmediately,omitempty"`
-	Restart          uint `mapstructure:"restart" json:"restart,omitempty"`
+	MaxRetries       uint `mapstructure:"max_retries" json:"maxRetries,omitempty"`
 
 	Id        cron.EntryID `json:"id,omitempty"`
 	StartAt   time.Time    `json:"startAt,omitempty"`
@@ -135,33 +136,36 @@ func (item *Task) UpdateStatus(status Status, err error) (ok bool) {
 
 func (item *Task) updateStatus(status Status, err error) (ok bool) {
 	ok = false
-	from := item.Status
 
-	switch status {
-	case Created, Running:
-		ok = true
-	case Failed, Cancelled, Removed:
-		if item.Status == Running {
-			ok = true
-		}
-	case Done:
-		switch item.Status {
-		case Running, Cancelled, Removed:
-			ok = true
-		}
+	status2 := map[Status][]Status{
+		Created:   {Running},
+		Running:   {Failed, Cancelled, Removed, Done},
+		Failed:    {Running, Removed},
+		Cancelled: {Running, Removed},
+		Removed:   {},
+		Done:      {Running, Removed},
+	}
+
+	ok = misc.VectorIndex[Status](status2[item.Status], status) > -1
+	if !ok {
+		item.logger.Warn(
+			"can't update status",
+			zap.String("from", string(item.Status)),
+			zap.String("to", string(status)),
+		)
+		return
 	}
 
 	if err != nil {
 		item.Error = err.Error()
+	} else {
+		item.Error = ""
 	}
 
-	fields := []zap.Field{zap.String("from", string(from)),
+	fields := []zap.Field{
+		zap.String("from", string(item.Status)),
 		zap.String("to", string(status)),
-		zap.String("error", item.Error)}
-
-	if !ok {
-		item.logger.Warn("can't update status", fields...)
-		return
+		zap.String("error", item.Error),
 	}
 
 	item.Status, item.UpdatedAt = status, time.Now()
@@ -216,7 +220,7 @@ func (item *Task) Run() {
 			item.UpdateStatus(Cancelled, err)
 		}
 
-		for i := 0; i < int(item.Restart)+1; i++ {
+		for i := 0; i < int(item.MaxRetries)+1; i++ {
 			if i > 0 {
 				time.Sleep(3 * time.Second)
 			}
@@ -228,7 +232,7 @@ func (item *Task) Run() {
 			}
 		}
 		if err != nil {
-			item.logger.Error("abort task", zap.Uint("retryTimes", item.Restart))
+			item.logger.Error("abort task", zap.Uint("retryTimes", item.MaxRetries))
 			return
 		}
 

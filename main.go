@@ -29,6 +29,7 @@ func main() {
 	flag.Parse()
 
 	okOrExit := func(err error) {
+		logger.Down()
 		if err == nil {
 			return
 		}

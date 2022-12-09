@@ -11,6 +11,6 @@ jobs:
     month_day: "*"
     month: "*"
     week_day: "1"
-  restart: 0
+  max_retries: 0
   # delay: time.Duration
   start_immediately: true
