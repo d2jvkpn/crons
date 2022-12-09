@@ -105,10 +105,8 @@ func (m *Manager) CloneTasks() (tasks []Task) {
 			continue
 		}
 
-		v.RLock()
 		t := *v
 		t.cmd, t.mutex = nil, nil
-		v.RUnlock()
 		tasks = append(tasks, t)
 	}
 
@@ -130,6 +128,7 @@ func (m *Manager) Shutdown() {
 	m.cron.Stop()
 
 	for _, v := range m.tasks {
+		m.logger.Info("remove task", zap.Int("id", int(v.Id)))
 		_ = v.Remove("manager", "shutdown")
 	}
 	m.logger.Info("Shutdown Cron", zap.Int("numberOfTasks", len(m.tasks)))

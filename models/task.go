@@ -96,11 +96,15 @@ func (item *Task) Compile() (err error) {
 	}
 
 	item.mutex = new(sync.RWMutex)
+	item.setCmd()
 
+	return nil
+}
+
+func (item *Task) setCmd() {
 	// item.cmd = exec.CommandContext(ctx, item.Path, item.Args...)
 	item.cmd = exec.Command(item.Path, item.Args...)
 	item.cmd.Dir = item.WorkDir
-	return nil
 }
 
 func (item *Task) WithLogger(logger *zap.Logger) *Task {
@@ -161,6 +165,9 @@ func (item *Task) updateStatus(status Status, err error) (ok bool) {
 		return
 	}
 
+	if status != Running {
+		item.Pid = 0
+	}
 	if err != nil {
 		item.Error = err.Error()
 	} else {
@@ -191,16 +198,13 @@ func (item *Task) GetStatus() (s Status) {
 	item.mutex.RLock()
 	defer item.mutex.RUnlock()
 
-	s = item.Status
+	s = item.getStatus()
 	return s
 }
 
-func (item *Task) RLock() {
-	item.mutex.RLock()
-}
-
-func (item *Task) RUnlock() {
-	item.mutex.RUnlock()
+func (item *Task) getStatus() (s Status) {
+	s = item.Status
+	return s
 }
 
 func (item *Task) Run() {
@@ -225,6 +229,7 @@ func (item *Task) Run() {
 			item.UpdateStatus(Cancelled, err)
 		}
 
+		item.setCmd()
 		for i := 0; i < int(item.MaxRetries)+1; i++ {
 			if i > 0 {
 				time.Sleep(3 * time.Second)
@@ -263,7 +268,7 @@ func (item *Task) Remove(by, reason string) bool {
 
 	item.mutex.Lock()
 	_, _ = item.kill()
-	item.updateStatus(Removed, fmt.Errorf("by: %q, reason: %q", by, reason))
+	item.updateStatus(Removed, fmt.Errorf("by:%s, reason:%s", by, reason))
 	item.mutex.Unlock()
 	return true
 }
@@ -271,7 +276,7 @@ func (item *Task) Remove(by, reason string) bool {
 func (item *Task) kill() (ok bool, err error) {
 	defer item.logger.Warn("kill process", zap.Bool("ok", ok), zap.Any("error", err))
 	// TODO send a term signal to process
-	if item.GetStatus() == Running {
+	if item.getStatus() == Running {
 		ok = true
 		err = item.cmd.Process.Kill()
 		return

@@ -10,6 +10,7 @@ import (
 	"crons/models"
 
 	"github.com/d2jvkpn/go-web/pkg/wrap"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -47,7 +48,6 @@ func main() {
 	okOrExit(err)
 
 	fmt.Printf(">>> Start Cron: pid=%d, numberOfTasks=%d, dryrun=%t\n", manager.Pid, num, dryrun)
-
 	if !dryrun {
 		manager.Start()
 	}
@@ -56,7 +56,8 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
 	select {
-	case <-quit:
+	case sig := <-quit:
+		logger.Warn("receive signal", zap.Any("signal", sig))
 		fmt.Println("")
 		manager.Shutdown()
 		fmt.Println("<<< Stop Cron")

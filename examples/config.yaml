@@ -1,16 +1,15 @@
 jobs:
 # required: name, path, cron
-- name: Sleep
+- name: SLEEP
   path: sleep
-  args: [30]
+  args: [70]
   workdir: ""
   # https://crontab.guru/#00_00_*_*_1
   cron:
-    minute: "0"
-    hour: "0"
+    minute: "*/1"
+    hour: "*"
     month_day: "*"
     month: "*"
-    week_day: "1"
-  max_retries: 0
-  # delay: time.Duration
+    week_day: "*"
+  max_retries: 3
   start_immediately: true
