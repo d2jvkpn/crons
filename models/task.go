@@ -216,7 +216,7 @@ func (item *Task) Run() {
 		}
 
 		if status == Running {
-			err = item.cmd.Process.Kill()
+			_, err = item.kill()
 			item.UpdateStatus(Cancelled, err)
 		}
 
@@ -257,8 +257,21 @@ func (item *Task) Remove(by, reason string) bool {
 	}
 
 	item.mutex.Lock()
-	item.cmd.Process.Kill() // TODO send a term signal to process
+	_, _ = item.kill()
 	item.updateStatus(Removed, fmt.Errorf("by: %q, reason: %q", by, reason))
 	item.mutex.Unlock()
 	return true
+}
+
+func (item *Task) kill() (ok bool, err error) {
+	defer item.logger.Warn("kill process", zap.Bool("ok", ok), zap.Any("error", err))
+	// TODO send a term signal to process
+	if item.GetStatus() == Running {
+		ok = true
+		err = item.cmd.Process.Kill()
+		return
+	}
+
+	ok = false
+	return
 }
