@@ -10,7 +10,7 @@ func LoadAPI(rg *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 	task := auth.Group("/task")
 
 	task.GET("/find_all", func(ctx *gin.Context) {
-		tasks := _Manager.CloneTasks(true)
+		tasks := _Manager.CloneTasks(false)
 		JSON(ctx, gin.H{"items": tasks}, nil)
 	})
 }
