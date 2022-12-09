@@ -18,6 +18,7 @@ func main() {
 		config   string
 		logLevel string
 		num      int
+		pid      int
 		dryrun   bool
 		err      error
 		logger   *wrap.Logger
@@ -41,13 +42,14 @@ func main() {
 	// err = os.Chdir(filepath.Dir(os.Args[0]))
 	// okOrExit(err)
 
+	pid = os.Getpid()
 	logger = wrap.NewLogger("logs/crons.log", wrap.LogLevelFromStr(logLevel), 256, nil)
 
 	manager = models.NewManager(logger.Named("manager"))
 	num, err = manager.LoadTasksFronConfig(config, "jobs")
 	okOrExit(err)
 
-	fmt.Printf(">>> Start Cron: pid=%d, numberOfTasks=%d, dryrun=%t\n", manager.Pid, num, dryrun)
+	fmt.Printf(">>> Start Cron: pid=%d, numberOfTasks=%d, dryrun=%t\n", pid, num, dryrun)
 	if !dryrun {
 		manager.Start()
 	}
