@@ -1,18 +1,24 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"sort"
-	"strings"
 	"syscall"
 
 	"crons/internal"
 
 	"github.com/d2jvkpn/go-web/pkg/misc"
+	"github.com/d2jvkpn/go-web/pkg/wrap"
+	"github.com/spf13/viper"
+)
+
+var (
+	//go:embed project.yaml
+	_Project []byte
 )
 
 func main() {
@@ -21,7 +27,12 @@ func main() {
 		addr    string
 		config  string
 		err     error
+		project *viper.Viper
 	)
+
+	if project, err = wrap.ConfigFromBytes(_Project, "yaml"); err != nil {
+		log.Fatalln(err)
+	}
 
 	flag.StringVar(&config, "config", "local.yaml", "tasks config file")
 	flag.StringVar(&addr, "addr", "", "http serve address")
@@ -29,12 +40,16 @@ func main() {
 
 	flag.Usage = func() {
 		fmt.Fprintf(
-			flag.CommandLine.Output(), "%s\n\nUsage of %s:\n",
-			buildInfo(),
+			flag.CommandLine.Output(),
+			"Registry: %s\nVersion: %s\n%s\n\nUsage of %s:\n",
+			project.GetString("project"),
+			project.GetString("version"),
+			misc.BuildInfoText(),
 			os.Args[0],
 		)
 		flag.PrintDefaults()
 	}
+	flag.Parse()
 
 	flag.Parse()
 
@@ -47,17 +62,6 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-}
-
-func buildInfo() string {
-	data := misc.BuildInfo()
-	strs := make([]string, 0, len(data))
-	for k, v := range data {
-		strs = append(strs, fmt.Sprintf("%s: %s", strings.Title(k), v))
-	}
-
-	sort.Strings(strs)
-	return strings.Join(strs, "\n")
 }
 
 func runCrons(config string) (err error) {
