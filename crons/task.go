@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/d2jvkpn/go-web/pkg/misc"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
@@ -151,35 +150,14 @@ func (item *Cron) cronExpr() string {
 	)
 }
 
-func (item *Task) UpdateStatus(status Status, err error) (ok bool) {
+func (item *Task) UpdateStatus(status Status, err error) {
 	item.mutex.Lock()
-	ok = item.updateStatus(status, err)
+	item.updateStatus(status, err)
 	item.mutex.Unlock()
-	return ok
+	return
 }
 
-func (item *Task) updateStatus(status Status, err error) (ok bool) {
-	ok = false
-
-	status2 := map[Status][]Status{
-		Created:   {Running},
-		Running:   {Failed, Cancelled, Removed, Done},
-		Failed:    {Running, Removed},
-		Cancelled: {Running, Removed},
-		Removed:   {},
-		Done:      {Running, Removed},
-	}
-
-	ok = misc.VectorIndex[Status](status2[item.Status], status) > -1
-	if !ok {
-		item.logger.Warn(
-			"can't update status",
-			zap.String("from", string(item.Status)),
-			zap.String("to", string(status)),
-		)
-		return
-	}
-
+func (item *Task) updateStatus(status Status, err error) {
 	if status != Running {
 		item.Pid = 0
 	}
@@ -205,8 +183,6 @@ func (item *Task) updateStatus(status Status, err error) (ok bool) {
 	default:
 		item.logger.Info("update status", fields...)
 	}
-
-	return ok
 }
 
 func (item *Task) GetStatus() (s Status) {
@@ -223,10 +199,6 @@ func (item *Task) getStatus() (s Status) {
 }
 
 func (item *Task) Run() {
-	go item.run()
-}
-
-func (item *Task) run() {
 	var (
 		pid    int
 		err    error
@@ -297,7 +269,13 @@ func (item *Task) Remove(by, reason string) bool {
 }
 
 func (item *Task) kill() (ok bool, err error) {
-	defer item.logger.Warn("kill process", zap.Bool("ok", ok), zap.Any("error", err))
+	defer func() {
+		if err != nil {
+			item.logger.Warn("kill process", zap.Bool("ok", ok), zap.Any("error", err.Error()))
+		} else {
+			item.logger.Warn("kill process", zap.Bool("ok", ok))
+		}
+	}()
 	// TODO send a term signal to process
 	if item.getStatus() == Running {
 		ok = true
