@@ -18,3 +18,4 @@ target
 wk_*/
 logs/
 configs/
+/*.yaml

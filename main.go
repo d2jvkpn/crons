@@ -21,7 +21,7 @@ func main() {
 		err     error
 	)
 
-	flag.StringVar(&config, "config", "configs/test.yaml", "tasks config file")
+	flag.StringVar(&config, "config", "local.yaml", "tasks config file")
 	flag.StringVar(&addr, "addr", "", "http serve address")
 	flag.BoolVar(&release, "release", false, "run in release mode")
 	flag.Parse()
