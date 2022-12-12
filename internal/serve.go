@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -26,7 +25,7 @@ func Serve(addr string, parameters map[string]any) (err error) {
 func Shutdown() {
 	var err error
 
-	_Logger.Warn("server down")
+	_Logger.Warn("server is shutting down")
 
 	if _Server != nil {
 		ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
@@ -38,5 +37,4 @@ func Shutdown() {
 
 	// close other goroutines or services
 	_Logger.Down()
-	log.Println("<<< Exit")
 }

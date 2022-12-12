@@ -3,7 +3,7 @@ module crons
 go 1.19
 
 require (
-	github.com/d2jvkpn/go-web v0.0.0-20221212093917-03f7cacdb1e0
+	github.com/d2jvkpn/go-web v0.0.0-20221212103002-96bb93adf99b
 	github.com/gin-gonic/gin v1.8.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.14.0
@@ -32,7 +32,7 @@ require (
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -54,7 +54,7 @@ require (
 	go.uber.org/goleak v1.2.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
-	golang.org/x/exp v0.0.0-20221208044002-44028be4359e // indirect
+	golang.org/x/exp v0.0.0-20221211140036-ad323defaf05 // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect

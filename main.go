@@ -77,7 +77,7 @@ func runCrons(config string) (err error) {
 	}
 
 	internal.Manager.Start()
-	log.Printf(">>> Number Of cron tasks: %d\n", num)
+	log.Printf(">>> Number Of cron tasks: %d, Pid: %d\n", num, os.Getpid())
 
 	quit := make(chan os.Signal, 1)
 
@@ -120,7 +120,10 @@ func server(config, addr string, release bool) (err error) {
 
 	go func() {
 		var err error
-		log.Printf(">>> HTTP server listening on %s, number Of cron tasks: %d\n", addr, num)
+		log.Printf(
+			">>> HTTP server listening on %s, number Of cron tasks: %d, Pid: %d\n",
+			addr, num, os.Getpid(),
+		)
 		err = internal.Serve(addr, parameters)
 		errch <- err
 	}()
@@ -136,6 +139,7 @@ func server(config, addr string, release bool) (err error) {
 		internal.Manager.Shutdown()
 		log.Println("<<< Stop Cron")
 		internal.Shutdown()
+		log.Println("<<< Exit")
 		err = <-errch
 	}
 
