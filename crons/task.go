@@ -55,6 +55,7 @@ type Task struct {
 	MaxRetries       uint `mapstructure:"max_retries" json:"maxRetries,omitempty"`
 
 	Id        cron.EntryID `json:"id,omitempty"`
+	CreatedAt time.Time    `json:"createdAt,omitempty"`
 	StartAt   time.Time    `json:"startAt,omitempty"`
 	UpdatedAt time.Time    `json:"updatedAt,omitempty"`
 	CronExpr  string       `json:"cronExpr,omitempty"`
@@ -81,21 +82,21 @@ func (item *Task) Clone(clear bool) (task Task) {
 	if !clear {
 		return
 	}
-
-	var at time.Time
-	task.Id = cron.EntryID(0)
-	task.StartAt, task.UpdatedAt = at, at
-	task.Pid, task.Status, task.Error = 0, Created, ""
+	item.setDefault()
 	return
 }
 
-func (item *Task) Compile() (err error) {
+func (item *Task) setDefault() {
 	var at time.Time
-
 	item.Id = cron.EntryID(0)
 	item.StartAt, item.UpdatedAt = at, at
 	item.Pid, item.Status, item.Error = 0, Created, ""
 
+	at = time.Now()
+	item.CreatedAt = at
+}
+
+func (item *Task) Compile() (err error) {
 	if item.Name == "" {
 		return fmt.Errorf("name is empty")
 	}
@@ -106,6 +107,7 @@ func (item *Task) Compile() (err error) {
 		return err
 	}
 
+	item.setDefault()
 	item.mutex = new(sync.RWMutex)
 	item.setCmd()
 
@@ -219,57 +221,60 @@ func (item *Task) getStatus() (s Status) {
 }
 
 func (item *Task) Run() {
-	if item.StartAt.IsZero() {
-		now := time.Now()
-		item.StartAt, item.UpdatedAt = now, now
+	go item.run()
+}
+
+func (item *Task) run() {
+
+	var (
+		pid    int
+		err    error
+		status Status
+		now    time.Time
+	)
+
+	now = time.Now()
+	item.UpdatedAt = now
+
+	if status = item.GetStatus(); status == Removed {
+		return
 	}
 
-	go func() {
-		var (
-			pid    int
-			err    error
-			status Status
-		)
+	if status == Running {
+		_, err = item.kill()
+		item.UpdateStatus(Cancelled, err)
+	}
 
-		if status = item.GetStatus(); status == Removed {
-			return
+	item.setCmd()
+	for i := 0; i < int(item.MaxRetries)+1; i++ {
+		if i > 0 {
+			time.Sleep(3 * time.Second)
 		}
 
-		if status == Running {
-			_, err = item.kill()
-			item.UpdateStatus(Cancelled, err)
-		}
-
-		item.setCmd()
-		for i := 0; i < int(item.MaxRetries)+1; i++ {
-			if i > 0 {
-				time.Sleep(3 * time.Second)
-			}
-
-			if err = item.cmd.Start(); err != nil {
-				item.UpdateStatus(Failed, err)
-			} else {
-				break
-			}
-		}
-		if err != nil {
-			item.logger.Error("abort task", zap.Uint("retryTimes", item.MaxRetries))
-			return
-		}
-
-		item.UpdateStatus(Running, nil)
-		if pid = 0; item.cmd.Process != nil {
-			pid = item.cmd.Process.Pid
-			item.Pid = pid
-		}
-		item.logger.Info("started task", zap.Int("pid", pid))
-
-		if err = item.cmd.Wait(); err != nil {
+		if err = item.cmd.Start(); err != nil {
 			item.UpdateStatus(Failed, err)
 		} else {
-			item.UpdateStatus(Done, nil)
+			break
 		}
-	}()
+	}
+	if err != nil {
+		item.logger.Error("abort task", zap.Uint("retryTimes", item.MaxRetries))
+		return
+	}
+
+	item.UpdateStatus(Running, nil)
+	if pid = 0; item.cmd.Process != nil {
+		pid = item.cmd.Process.Pid
+		item.Pid = pid
+	}
+	item.logger.Info("started task", zap.Int("pid", pid))
+
+	if err = item.cmd.Wait(); err != nil {
+		item.UpdateStatus(Failed, err)
+	} else {
+		item.StartAt = now
+		item.UpdateStatus(Done, nil)
+	}
 }
 
 func (item *Task) Remove(by, reason string) bool {
