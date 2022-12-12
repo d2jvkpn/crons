@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sort"
+	"strings"
 	"syscall"
 
 	"crons/internal"
@@ -24,6 +26,16 @@ func main() {
 	flag.StringVar(&config, "config", "local.yaml", "tasks config file")
 	flag.StringVar(&addr, "addr", "", "http serve address")
 	flag.BoolVar(&release, "release", false, "run in release mode")
+
+	flag.Usage = func() {
+		fmt.Fprintf(
+			flag.CommandLine.Output(), "%s\n\nUsage of %s:\n",
+			buildInfo(),
+			os.Args[0],
+		)
+		flag.PrintDefaults()
+	}
+
 	flag.Parse()
 
 	if addr != "" {
@@ -35,6 +47,17 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func buildInfo() string {
+	data := misc.BuildInfo()
+	strs := make([]string, 0, len(data))
+	for k, v := range data {
+		strs = append(strs, fmt.Sprintf("%s: %s", strings.Title(k), v))
+	}
+
+	sort.Strings(strs)
+	return strings.Join(strs, "\n")
 }
 
 func runCrons(config string) (err error) {
