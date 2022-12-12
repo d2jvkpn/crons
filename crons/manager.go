@@ -127,7 +127,7 @@ func (m *Manager) CloneTasks(clear bool) (tasks []Task) {
 func (m *Manager) Start() {
 	for i := range m.tasks {
 		if m.tasks[i].StartImmediately {
-			m.tasks[i].Run()
+			go m.tasks[i].Run()
 		}
 	}
 

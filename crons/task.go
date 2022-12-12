@@ -206,9 +206,6 @@ func (item *Task) Run() {
 		now    time.Time
 	)
 
-	now = time.Now()
-	item.UpdatedAt = now
-
 	if status = item.GetStatus(); status == Removed {
 		return
 	}
@@ -224,6 +221,8 @@ func (item *Task) Run() {
 		<-item.ch
 	}()
 
+	now = time.Now()
+	item.UpdatedAt = now
 	item.setCmd()
 	for i := 0; i < int(item.MaxRetries)+1; i++ {
 		if i > 0 {
