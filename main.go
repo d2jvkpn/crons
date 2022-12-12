@@ -37,7 +37,7 @@ func main() {
 
 	flag.StringVar(&config, "config", "configs/local.yaml", "tasks config file")
 	flag.StringVar(&addr, "addr", "", "http serve address")
-	flag.BoolVar(&release, "release", false, "run in release mode")
+	flag.BoolVar(&release, "release", false, "run in release mode, work with -addr")
 
 	flag.Usage = func() {
 		output := flag.CommandLine.Output()
@@ -54,8 +54,6 @@ func main() {
 
 		fmt.Fprintf(output, "\nConfig template:\n```yaml\n%s```\n", project.GetString("config"))
 	}
-	flag.Parse()
-
 	flag.Parse()
 
 	if addr != "" {
@@ -99,9 +97,9 @@ func server(config, addr string, release bool) (err error) {
 	var num int
 
 	parameters := map[string]any{
-		"--config":  config,
-		"--addr":    addr,
-		"--release": release,
+		"-config":  config,
+		"-addr":    addr,
+		"-release": release,
 	}
 	for k, v := range misc.BuildInfo() {
 		parameters[k] = v

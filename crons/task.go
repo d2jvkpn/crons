@@ -78,7 +78,8 @@ type Cron struct {
 
 func (item *Task) Clone(clear bool) (task Task) {
 	task = *item
-	task.cmd, task.mutex, task.logger, task.ch = nil, nil, nil, nil
+	task.cmd, task.mutex = nil, nil
+	task.logger, task.ch = nil, nil
 	if !clear {
 		return
 	}

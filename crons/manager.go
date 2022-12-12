@@ -3,6 +3,7 @@ package crons
 import (
 	// "context"
 	"fmt"
+	"os"
 
 	"github.com/d2jvkpn/go-web/pkg/wrap"
 	"github.com/robfig/cron/v3"
@@ -131,7 +132,11 @@ func (m *Manager) Start() {
 		}
 	}
 
-	m.logger.Info("Start Cron", zap.Int("numberOfTasks", len(m.tasks)))
+	m.logger.Info(
+		"Start Cron",
+		zap.Int("numberOfTasks", len(m.tasks)),
+		zap.Int("pid", os.Getpid()),
+	)
 	m.cron.Start()
 }
 
