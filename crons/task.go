@@ -66,6 +66,7 @@ type Task struct {
 	cmd    *exec.Cmd
 	mutex  *sync.RWMutex
 	logger *zap.Logger
+	ch     chan struct{}
 }
 
 type Cron struct {
@@ -78,7 +79,7 @@ type Cron struct {
 
 func (item *Task) Clone(clear bool) (task Task) {
 	task = *item
-	task.cmd, task.mutex, task.logger = nil, nil, nil
+	task.cmd, task.mutex, task.logger, task.ch = nil, nil, nil, nil
 	if !clear {
 		return
 	}
@@ -109,6 +110,7 @@ func (item *Task) Compile() (err error) {
 
 	item.setDefault()
 	item.mutex = new(sync.RWMutex)
+	item.ch = make(chan struct{}, 1)
 	item.setCmd()
 
 	return nil
@@ -225,7 +227,6 @@ func (item *Task) Run() {
 }
 
 func (item *Task) run() {
-
 	var (
 		pid    int
 		err    error
@@ -242,8 +243,14 @@ func (item *Task) run() {
 
 	if status == Running {
 		_, err = item.kill()
+		item.ch <- struct{}{} // wait for the previous goroutine to exit
 		item.UpdateStatus(Cancelled, err)
+	} else {
+		item.ch <- struct{}{}
 	}
+	defer func() {
+		<-item.ch
+	}()
 
 	item.setCmd()
 	for i := 0; i < int(item.MaxRetries)+1; i++ {
