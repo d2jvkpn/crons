@@ -35,7 +35,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	flag.StringVar(&config, "config", "local.yaml", "tasks config file")
+	flag.StringVar(&config, "config", "configs/local.yaml", "tasks config file")
 	flag.StringVar(&addr, "addr", "", "http serve address")
 	flag.BoolVar(&release, "release", false, "run in release mode")
 
