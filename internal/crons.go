@@ -13,8 +13,8 @@ func LoadCron(fp, field string) (num int, err error) {
 
 	logger = wrap.NewLogger("logs/crons.log", wrap.LogLevelFromStr("info"), 256, nil)
 	logger.Logger = logger.Logger.Named("manager")
-	_Manager = crons.NewManager(logger)
-	if num, err = _Manager.LoadTasksFronConfig(fp, field); err != nil {
+	Manager = crons.NewManager(logger)
+	if num, err = Manager.LoadTasksFronConfig(fp, field); err != nil {
 		return 0, err
 	}
 

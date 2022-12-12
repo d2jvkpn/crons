@@ -15,7 +15,6 @@ import (
 
 func main() {
 	var (
-		num     int
 		release bool
 		addr    string
 		config  string
@@ -23,19 +22,50 @@ func main() {
 	)
 
 	flag.StringVar(&config, "config", "configs/test.yaml", "tasks config file")
-	flag.StringVar(&addr, "addr", ":3011", "http serve address")
+	flag.StringVar(&addr, "addr", "", "http serve address")
 	flag.BoolVar(&release, "release", false, "run in release mode")
 	flag.Parse()
 
-	okOrExit := func(err error) {
-		if err == nil {
-			return
-		}
-		log.Fatalln(err)
+	if addr != "" {
+		err = server(config, addr, release)
+	} else {
+		err = runCrons(config)
 	}
 
-	// err = os.Chdir(filepath.Dir(os.Args[0]))
-	// okOrExit(err)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func runCrons(config string) (err error) {
+	var num int
+
+	if num, err = internal.LoadCron(config, "jobs"); err != nil {
+		return err
+	}
+
+	internal.Manager.Start()
+	log.Printf(">>> Number Of cron tasks: %d\n", num)
+
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	select {
+	case sig := <-quit:
+		fmt.Println("")
+		log.Println("received signal:", sig)
+
+		internal.Manager.Shutdown()
+		log.Println("<<< Stop Cron")
+	}
+
+	return err
+}
+
+func server(config, addr string, release bool) (err error) {
+	var num int
+
 	parameters := map[string]any{
 		"--config":  config,
 		"--addr":    addr,
@@ -45,12 +75,16 @@ func main() {
 		parameters[k] = v
 	}
 
-	num, err = internal.LoadCron(config, "jobs")
-	okOrExit(err)
-	err = internal.Load(release)
-	okOrExit(err)
+	if num, err = internal.LoadCron(config, "jobs"); err != nil {
+		return err
+	}
+	if err = internal.Load(release); err != nil {
+		return err
+	}
 
 	errch, quit := make(chan error, 1), make(chan os.Signal, 1)
+
+	internal.Manager.Start()
 
 	go func() {
 		var err error
@@ -66,12 +100,12 @@ func main() {
 	case sig := <-quit:
 		fmt.Println("")
 		log.Println("received signal:", sig)
+
+		internal.Manager.Shutdown()
+		log.Println("<<< Stop Cron")
 		internal.Shutdown()
 		err = <-errch
-		log.Println("<<< Stop Cron")
 	}
 
-	if err != nil {
-		log.Fatalln(err)
-	}
+	return err
 }

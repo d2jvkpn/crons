@@ -30,5 +30,5 @@ var (
 	_Release bool
 	_Server  *http.Server
 	_Logger  *wrap.Logger
-	_Manager *crons.Manager
+	Manager  *crons.Manager
 )

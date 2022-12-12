@@ -24,7 +24,7 @@ func LoadAPI(rg *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 			return
 		}
 
-		if err = _Manager.AddTask(task); err != nil {
+		if err = Manager.AddTask(task); err != nil {
 			JSON(ctx, nil, ErrBadRequest(err, "bad request"))
 			return
 		}
@@ -40,7 +40,7 @@ func LoadAPI(rg *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 
 		id, _ = strconv.Atoi(ctx.DefaultQuery("id", "0"))
 
-		if err = _Manager.RemoveTask(id, "api::remove", "todo"); err != nil {
+		if err = Manager.RemoveTask(id, "api::remove", "todo"); err != nil {
 			JSON(ctx, nil, ErrBadRequest(err, "task not found"))
 			return
 		}
@@ -57,7 +57,7 @@ func LoadAPI(rg *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 
 		id, _ = strconv.Atoi(ctx.DefaultQuery("id", "0"))
 
-		if task, err = _Manager.FindTask(id); err != nil {
+		if task, err = Manager.FindTask(id); err != nil {
 			JSON(ctx, nil, ErrBadRequest(err, "task not found"))
 		} else {
 			JSON(ctx, gin.H{"item": task}, nil)
@@ -65,7 +65,7 @@ func LoadAPI(rg *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 	})
 
 	task.GET("/find_all", func(ctx *gin.Context) {
-		tasks := _Manager.CloneTasks(false)
+		tasks := Manager.CloneTasks(false)
 		JSON(ctx, gin.H{"items": tasks}, nil)
 	})
 }

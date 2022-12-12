@@ -14,7 +14,6 @@ func Serve(addr string, parameters map[string]any) (err error) {
 	_Logger.Info("startup", zap.Any("parameters", parameters), zap.String("address", addr))
 	_Server.Addr = addr
 
-	_Manager.Start()
 	if err = _Server.ListenAndServe(); err != http.ErrServerClosed {
 		Shutdown()
 	} else {
@@ -38,7 +37,6 @@ func Shutdown() {
 	}
 
 	// close other goroutines or services
-	_Manager.Shutdown()
 	_Logger.Down()
 	log.Println("<<< Exit")
 }
