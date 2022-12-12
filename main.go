@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"crons/internal"
@@ -45,7 +46,7 @@ func main() {
 			project.GetString("project"),
 			project.GetString("version"),
 			misc.BuildInfoText(),
-			os.Args[0],
+			filepath.Base(os.Args[0]),
 		)
 		flag.PrintDefaults()
 	}
