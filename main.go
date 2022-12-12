@@ -40,8 +40,10 @@ func main() {
 	flag.BoolVar(&release, "release", false, "run in release mode")
 
 	flag.Usage = func() {
+		output := flag.CommandLine.Output()
+
 		fmt.Fprintf(
-			flag.CommandLine.Output(),
+			output,
 			"Registry: %s\nVersion: %s\n%s\n\nUsage of %s:\n",
 			project.GetString("project"),
 			project.GetString("version"),
@@ -49,6 +51,8 @@ func main() {
 			filepath.Base(os.Args[0]),
 		)
 		flag.PrintDefaults()
+
+		fmt.Fprintf(output, "\nConfig template:\n```yaml\n%s```\n", project.GetString("config"))
 	}
 	flag.Parse()
 
