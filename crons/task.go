@@ -91,6 +91,7 @@ func (item *Task) Clone(clear bool) (task Task) {
 
 func (item *Task) Compile() (err error) {
 	var at time.Time
+
 	item.Id = cron.EntryID(0)
 	item.StartAt, item.UpdatedAt = at, at
 	item.Pid, item.Status, item.Error = 0, Created, ""

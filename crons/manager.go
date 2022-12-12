@@ -73,6 +73,10 @@ func (m *Manager) RemoveTask(id int, by, reason string) (err error) {
 		task *Task
 	)
 
+	if id <= 0 {
+		return fmt.Errorf("invalid id")
+	}
+
 	eId = cron.EntryID(id)
 	for i, v := range m.tasks {
 		if v.Id == eId {
@@ -81,7 +85,7 @@ func (m *Manager) RemoveTask(id int, by, reason string) (err error) {
 		}
 	}
 	if task == nil {
-		m.logger.Warn("task not found", zap.Int("id", id))
+		// m.logger.Warn("task not found", zap.Int("id", id))
 		return fmt.Errorf("task not found")
 	}
 
@@ -91,6 +95,23 @@ func (m *Manager) RemoveTask(id int, by, reason string) (err error) {
 	m.logger.Warn("remove task", zap.Int("id", id))
 
 	return nil
+}
+
+func (m *Manager) FindTask(id int) (task *Task, err error) {
+	var eId cron.EntryID
+
+	if id <= 0 {
+		return nil, fmt.Errorf("invalid id")
+	}
+
+	eId = cron.EntryID(id)
+	for _, v := range m.tasks {
+		if v.Id == eId {
+			return v, nil
+		}
+	}
+
+	return nil, fmt.Errorf("task not found")
 }
 
 func (m *Manager) CloneTasks(clear bool) (tasks []Task) {
