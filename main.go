@@ -23,6 +23,10 @@ var (
 	_Project []byte
 )
 
+func init() {
+	misc.RegisterLogPrinter()
+}
+
 func main() {
 	var (
 		release bool

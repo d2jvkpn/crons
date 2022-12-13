@@ -15,11 +15,6 @@ uncommitted=$(git status --short)
 unpushed=$(git diff origin/$gitBranch..HEAD --name-status)
 [[ ! -z "$uncommitted$unpushed" ]] && gitTreeState="dirty"
 
-#if [[ $(printenv APP_GitForce) != "true" ]]; then
-#    test -z "$uncommitted" || { echo "You have uncommitted changes!"; exit 1; }
-#    #- test -z "$unpushed" || { echo "You have unpushed commits!"; exit 1; }
-#fi
-
 ldflags="\
   -X main.buildTime=${buildTime} \
   -X main.gitBranch=$gitBranch   \
