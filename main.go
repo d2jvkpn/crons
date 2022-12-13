@@ -26,7 +26,7 @@ var (
 
 func init() {
 	misc.RegisterLogPrinter()
-	_NotWindows = runtime.GOOS != "Windows"
+	_NotWindows = runtime.GOOS != "windows"
 }
 
 func main() {
@@ -63,12 +63,19 @@ func main() {
 	}
 	flag.Parse()
 
+	if release {
+		internal.Logger = wrap.NewLogger("logs/crons.log", wrap.LogLevelFromStr("info"), 256, nil)
+	} else {
+		internal.Logger = wrap.NewLogger("logs/crons.log", wrap.LogLevelFromStr("debug"), 256, nil)
+	}
+
 	if addr != "" {
 		err = server(config, addr, release)
 	} else {
 		err = runCrons(config)
 	}
 
+	internal.Logger.Down()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -82,7 +89,7 @@ func runCrons(config string) (err error) {
 	}
 
 	internal.Manager.Start()
-	log.Printf(">>> Number Of cron tasks: %d, Pid: %d\n", num, os.Getpid())
+	log.Printf(">>> Number Of cron tasks: %d, Pid: %d, GOOS=%s\n", num, os.Getpid(), runtime.GOOS)
 
 	quit := make(chan os.Signal, 1)
 

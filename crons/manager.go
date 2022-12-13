@@ -14,11 +14,11 @@ import (
 
 type Manager struct {
 	cron   *cron.Cron
-	logger *wrap.Logger
+	logger *zap.Logger
 	tasks  []*Task
 }
 
-func NewManager(logger *wrap.Logger) *Manager {
+func NewManager(logger *zap.Logger) *Manager {
 	return &Manager{
 		cron:   cron.New(),
 		logger: logger,
@@ -150,5 +150,4 @@ func (m *Manager) Shutdown() {
 		_ = v.Remove("manager", "shutdown")
 	}
 	m.logger.Info("Shutdown Cron", zap.Int("numberOfTasks", len(m.tasks)))
-	m.logger.Down()
 }

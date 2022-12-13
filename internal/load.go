@@ -9,7 +9,6 @@ import (
 	"github.com/d2jvkpn/go-web/pkg/wrap"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 func Load(release bool) (err error) {
@@ -19,11 +18,6 @@ func Load(release bool) (err error) {
 		tmpl *template.Template
 	)
 
-	if !release {
-		_Logger = wrap.NewLogger("logs/api.log", zap.DebugLevel, LOG_SizeMB, nil)
-	} else {
-		_Logger = wrap.NewLogger("logs/api.log", zap.InfoLevel, LOG_SizeMB, nil)
-	}
 	_Release = release
 
 	if release {
@@ -43,7 +37,7 @@ func Load(release bool) (err error) {
 	engi.SetHTMLTemplate(tmpl)
 	engi.Use(wrap.Cors("*"))
 
-	apiLogger := resp.NewLogHandler[any](_Logger, "api")
+	apiLogger := resp.NewLogHandler[any](Logger, "api")
 
 	rg.GET("/healthz", wrap.Healthz)
 	LoadAPI(rg, apiLogger)

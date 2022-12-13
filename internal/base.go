@@ -17,8 +17,6 @@ const (
 	HTTP_WriteTimeout       = 10 * time.Second
 	HTTP_IdleTimeout        = 60
 	HTTP_MaxMultipartMemory = 8 << 20 // 8M
-
-	LOG_SizeMB = 512
 )
 
 var (
@@ -29,6 +27,6 @@ var (
 
 	_Release bool
 	_Server  *http.Server
-	_Logger  *wrap.Logger
+	Logger   *wrap.Logger
 	Manager  *crons.Manager
 )

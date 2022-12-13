@@ -12,7 +12,7 @@ import (
 )
 
 func Serve(addr string, parameters map[string]any) (err error) {
-	_Logger.Info(
+	Logger.Info(
 		"Server is starting",
 		zap.Any("parameters", parameters), zap.String("address", addr),
 		zap.Int("pid", os.Getpid()), zap.String("goos", runtime.GOOS),
@@ -31,16 +31,15 @@ func Serve(addr string, parameters map[string]any) (err error) {
 func Shutdown() {
 	var err error
 
-	_Logger.Warn("Server is shutting down")
+	Logger.Warn("Server is shutting down")
 
 	if _Server != nil {
 		ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 		if err = _Server.Shutdown(ctx); err != nil {
-			_Logger.Error(fmt.Sprintf("server shutdown: %v", err))
+			Logger.Error(fmt.Sprintf("server shutdown: %v", err))
 		}
 		cancel()
 	}
 
 	// close other goroutines or services
-	_Logger.Down()
 }
