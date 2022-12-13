@@ -158,10 +158,6 @@ func server(config, addr string, release bool) (err error) {
 		}
 
 		internal.Shutdown()
-		if _NotWindows {
-			log.Println("<<< Exit")
-		}
-
 		err = <-errch
 	}
 
