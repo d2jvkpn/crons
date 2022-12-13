@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"syscall"
 
 	"crons/internal"
@@ -128,16 +129,23 @@ func server(config, addr string, release bool) (err error) {
 
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
+	notWindows := runtime.GOOS != "Windows"
 	select {
 	case err = <-errch:
 	case sig := <-quit:
-		fmt.Println("")
-		log.Println("received signal:", sig)
+		if notWindows {
+			fmt.Println("")
+			log.Println("received signal:", sig)
+		}
 
 		internal.Manager.Shutdown()
-		log.Println("<<< Stop Cron")
+		if notWindows {
+			log.Println("<<< Stop Cron")
+		}
 		internal.Shutdown()
-		log.Println("<<< Exit")
+		if notWindows {
+			log.Println("<<< Exit")
+		}
 		err = <-errch
 	}
 
