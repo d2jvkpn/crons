@@ -140,8 +140,8 @@ func server(config, addr string, release bool) (err error) {
 	go func() {
 		var err error
 		log.Printf(
-			">>> HTTP server listening on %s, number Of cron tasks: %d, Pid: %d\n",
-			addr, num, os.Getpid(),
+			">>> HTTP server listening on %s, number Of cron tasks: %d, Pid: %d, OS: %s/%s\n",
+			addr, num, os.Getpid(), runtime.GOOS, runtime.GOARCH,
 		)
 		err = internal.Serve(addr, parameters)
 		errch <- err
