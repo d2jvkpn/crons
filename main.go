@@ -20,11 +20,13 @@ import (
 
 var (
 	//go:embed project.yaml
-	_Project []byte
+	_Project    []byte
+	_NotWindows bool
 )
 
 func init() {
 	misc.RegisterLogPrinter()
+	_NotWindows = runtime.GOOS != "Windows"
 }
 
 func main() {
@@ -88,11 +90,15 @@ func runCrons(config string) (err error) {
 
 	select {
 	case sig := <-quit:
-		fmt.Println("")
-		log.Println("received signal:", sig)
+		if _NotWindows {
+			fmt.Println("")
+			log.Println("received signal:", sig)
+		}
 
 		internal.Manager.Shutdown()
-		log.Println("<<< Stop Cron")
+		if _NotWindows {
+			log.Println("<<< Stop Cron")
+		}
 	}
 
 	return err
@@ -133,17 +139,16 @@ func server(config, addr string, release bool) (err error) {
 
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
-	notWindows := runtime.GOOS != "Windows"
 	select {
 	case err = <-errch:
 	case sig := <-quit:
-		if notWindows {
+		if _NotWindows {
 			fmt.Println("")
 			log.Println("received signal:", sig)
 		}
 
 		internal.Shutdown()
-		if notWindows {
+		if _NotWindows {
 			log.Println("<<< Exit")
 		}
 
@@ -151,7 +156,7 @@ func server(config, addr string, release bool) (err error) {
 	}
 
 	internal.Manager.Shutdown()
-	if notWindows {
+	if _NotWindows {
 		log.Println("<<< Stop Cron")
 	}
 
