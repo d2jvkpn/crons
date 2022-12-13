@@ -4,13 +4,19 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"runtime"
 	"time"
 
 	"go.uber.org/zap"
 )
 
 func Serve(addr string, parameters map[string]any) (err error) {
-	_Logger.Info("startup", zap.Any("parameters", parameters), zap.String("address", addr))
+	_Logger.Info(
+		"Server is starting",
+		zap.Any("parameters", parameters), zap.String("address", addr),
+		zap.Int("pid", os.Getpid()), zap.String("goos", runtime.GOOS),
+	)
 	_Server.Addr = addr
 
 	if err = _Server.ListenAndServe(); err != http.ErrServerClosed {
@@ -25,7 +31,7 @@ func Serve(addr string, parameters map[string]any) (err error) {
 func Shutdown() {
 	var err error
 
-	_Logger.Warn("server is shutting down")
+	_Logger.Warn("Server is shutting down")
 
 	if _Server != nil {
 		ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)

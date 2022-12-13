@@ -138,15 +138,17 @@ func server(config, addr string, release bool) (err error) {
 			log.Println("received signal:", sig)
 		}
 
-		internal.Manager.Shutdown()
-		if notWindows {
-			log.Println("<<< Stop Cron")
-		}
 		internal.Shutdown()
 		if notWindows {
 			log.Println("<<< Exit")
 		}
+
 		err = <-errch
+	}
+
+	internal.Manager.Shutdown()
+	if notWindows {
+		log.Println("<<< Stop Cron")
 	}
 
 	return err
