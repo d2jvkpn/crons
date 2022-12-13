@@ -14,8 +14,10 @@ import (
 func Serve(addr string, parameters map[string]any) (err error) {
 	Logger.Info(
 		"Server is starting",
-		zap.Any("parameters", parameters), zap.String("address", addr),
-		zap.Int("pid", os.Getpid()), zap.String("goos", runtime.GOOS),
+		zap.Any("parameters", parameters),
+		zap.String("address", addr),
+		zap.Int("pid", os.Getpid()),
+		zap.String("os", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)),
 	)
 	_Server.Addr = addr
 

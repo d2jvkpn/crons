@@ -137,7 +137,7 @@ func (m *Manager) Start() {
 		"Start Cron",
 		zap.Int("numberOfTasks", len(m.tasks)),
 		zap.Int("pid", os.Getpid()),
-		zap.String("goos", runtime.GOOS),
+		zap.String("os", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)),
 	)
 	m.cron.Start()
 }

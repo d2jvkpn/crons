@@ -89,7 +89,10 @@ func runCrons(config string) (err error) {
 	}
 
 	internal.Manager.Start()
-	log.Printf(">>> Number Of cron tasks: %d, Pid: %d, GOOS=%s\n", num, os.Getpid(), runtime.GOOS)
+	log.Printf(
+		">>> Number Of cron tasks: %d, Pid: %d, OS=%s/%s\n",
+		num, os.Getpid(), runtime.GOOS, runtime.GOARCH,
+	)
 
 	quit := make(chan os.Signal, 1)
 
