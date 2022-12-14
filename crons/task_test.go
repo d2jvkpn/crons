@@ -1,9 +1,12 @@
 package crons
 
 import (
+	"errors"
 	"fmt"
+	"os/exec"
 	"testing"
-	// . "github.com/stretchr/testify/require"
+
+	. "github.com/stretchr/testify/require"
 )
 
 type Data struct {
@@ -33,4 +36,20 @@ func TestData(t *testing.T) {
 
 	s2 := *s1
 	fmt.Printf("s2.b is nil: %t\n", s2.b == nil) // false
+}
+
+func TestCmdStart(t *testing.T) {
+	var (
+		err error
+		cmd *exec.Cmd
+	)
+
+	cmd = exec.Command("not_exist", "not_exist.txt")
+	err = cmd.Start()
+	fmt.Printf("~~~ %v, %t\n", err, errors.Is(err, exec.ErrNotFound))
+	Error(t, err)
+
+	cmd = exec.Command("ls", "not_exist.txt")
+	err = cmd.Start()
+	NoError(t, err)
 }

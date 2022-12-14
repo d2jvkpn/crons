@@ -14,8 +14,9 @@ import (
 type Status string
 
 const (
-	Created   Status = "created"
-	Running   Status = "running"
+	Created Status = "created"
+	Running Status = "running"
+	// Retring   Status = "retring"
 	Failed    Status = "failed"
 	Cancelled Status = "cancelled"
 	Removed   Status = "removed"
@@ -60,7 +61,7 @@ type Task struct {
 	CronExpr  string       `json:"cronExpr,omitempty"`
 	Pid       int          `json:"pid,omitempty"`
 	Status    Status       `json:"status,omitempty"`
-	Error     string       `json:"error,omitempty"`
+	Note      string       `json:"note,omitempty"`
 
 	cmd    *exec.Cmd
 	mutex  *sync.RWMutex
@@ -78,8 +79,8 @@ type Cron struct {
 
 func (item *Task) Clone(clear bool) (task Task) {
 	task = *item
-	task.cmd, task.mutex = nil, nil
-	task.logger, task.ch = nil, nil
+	task.cmd, task.mutex, task.logger = nil, nil, nil
+	task.ch = nil
 	if !clear {
 		return
 	}
@@ -91,7 +92,7 @@ func (item *Task) setDefault() {
 	var at time.Time
 	item.Id = cron.EntryID(0)
 	item.StartAt, item.UpdatedAt = at, at
-	item.Pid, item.Status, item.Error = 0, Created, ""
+	item.Pid, item.Status = 0, Created
 
 	at = time.Now()
 	item.CreatedAt = at
@@ -151,27 +152,31 @@ func (item *Cron) cronExpr() string {
 	)
 }
 
-func (item *Task) UpdateStatus(status Status, err error) {
+func (item *Task) UpdateStatus(status Status, note string) {
 	item.mutex.Lock()
-	item.updateStatus(status, err)
+	item.updateStatus(status, note)
 	item.mutex.Unlock()
 	return
 }
 
-func (item *Task) updateStatus(status Status, err error) {
-	if status != Running {
+func (item *Task) updateStatus(status Status, note string) {
+	now := time.Now()
+
+	if status == Running {
+		item.StartAt = now
+		if item.cmd.Process != nil {
+			item.Pid = item.cmd.Process.Pid
+		}
+	} else {
 		item.Pid = 0
 	}
-	if err != nil {
-		item.Error = err.Error()
-	} else {
-		item.Error = ""
-	}
+	item.UpdatedAt, item.Note = now, note
 
 	fields := []zap.Field{
 		zap.String("from", string(item.Status)),
 		zap.String("to", string(status)),
-		zap.String("error", item.Error),
+		zap.String("note", item.Note),
+		zap.Int("pid", item.Pid),
 	}
 
 	item.Status, item.UpdatedAt = status, time.Now()
@@ -199,12 +204,67 @@ func (item *Task) getStatus() (s Status) {
 	return s
 }
 
+//func (item *Task) Run() {
+//	var (
+//		pid    int
+//		err    error
+//		status Status
+//		now    time.Time
+//	)
+
+//	if status = item.GetStatus(); status == Removed {
+//		return
+//	}
+
+//	if status == Running {
+//		_, err = item.kill()
+//		item.ch <- struct{}{} // wait for the previous goroutine to exit
+//		item.UpdateStatus(Cancelled, err)
+//	} else {
+//		item.ch <- struct{}{}
+//	}
+//	defer func() {
+//		<-item.ch
+//	}()
+
+//	now = time.Now()
+//	item.UpdatedAt = now
+//	item.setCmd()
+//	for i := 0; i < int(item.MaxRetries)+1; i++ {
+//		if i > 0 {
+//			time.Sleep(RetryAfter)
+//		}
+
+//		if err = item.cmd.Start(); err != nil {
+//			item.UpdateStatus(Failed, err)
+//		} else {
+//			break
+//		}
+//	}
+//	if err != nil {
+//		item.logger.Error("abort task", zap.Uint("retryTimes", item.MaxRetries))
+//		return
+//	}
+
+//	item.UpdateStatus(Running, nil)
+//	if pid = 0; item.cmd.Process != nil {
+//		pid = item.cmd.Process.Pid
+//		item.Pid = pid
+//	}
+//	item.logger.Info("started task", zap.Int("pid", pid))
+
+//	if err = item.cmd.Wait(); err != nil {
+//		item.UpdateStatus(Failed, err)
+//	} else {
+//		item.StartAt = now
+//		item.UpdateStatus(Done, nil)
+//	}
+//}
+
 func (item *Task) Run() {
 	var (
-		pid    int
 		err    error
 		status Status
-		now    time.Time
 	)
 
 	if status = item.GetStatus(); status == Removed {
@@ -212,47 +272,54 @@ func (item *Task) Run() {
 	}
 
 	if status == Running {
-		_, err = item.kill()
-		item.ch <- struct{}{} // wait for the previous goroutine to exit
-		item.UpdateStatus(Cancelled, err)
-	} else {
-		item.ch <- struct{}{}
+		item.UpdateStatus(Cancelled, "kill process")
+		if _, err = item.kill(); err != nil {
+			item.UpdateStatus(Failed, fmt.Sprintf("failed to kill process: %v", err))
+			return
+		}
 	}
+	item.ch <- struct{}{}
+
+	item.run()
+}
+
+func (item *Task) run() {
+	var err error
+
 	defer func() {
+		// fmt.Println("<<<", time.Now().Format(time.RFC3339))
 		<-item.ch
 	}()
 
-	now = time.Now()
-	item.UpdatedAt = now
-	item.setCmd()
-	for i := 0; i < int(item.MaxRetries)+1; i++ {
+	shouldAbort := func() bool {
+		status := item.GetStatus()
+		return status == Cancelled || status == Removed
+	}
+
+	// fmt.Println(">>>", time.Now().Format(time.RFC3339))
+
+	for i := 0; i <= int(item.MaxRetries)+1; i++ {
 		if i > 0 {
 			time.Sleep(RetryAfter)
 		}
-
+		// fmt.Printf("~~~ %s, epoch: %d\n", time.Now().Format(time.RFC3339), i)
+		item.setCmd()
 		if err = item.cmd.Start(); err != nil {
-			item.UpdateStatus(Failed, err)
-		} else {
-			break
+			item.UpdateStatus(Failed, fmt.Sprintf("failed to start: %v", err))
+			return
 		}
-	}
-	if err != nil {
-		item.logger.Error("abort task", zap.Uint("retryTimes", item.MaxRetries))
-		return
-	}
+		item.UpdateStatus(Running, fmt.Sprintf("epoch: %d", i))
 
-	item.UpdateStatus(Running, nil)
-	if pid = 0; item.cmd.Process != nil {
-		pid = item.cmd.Process.Pid
-		item.Pid = pid
-	}
-	item.logger.Info("started task", zap.Int("pid", pid))
-
-	if err = item.cmd.Wait(); err != nil {
-		item.UpdateStatus(Failed, err)
-	} else {
-		item.StartAt = now
-		item.UpdateStatus(Done, nil)
+		if err = item.cmd.Wait(); err == nil {
+			item.UpdateStatus(Done, "")
+			return
+		}
+		// fmt.Println("~~~", err)
+		if shouldAbort() {
+			return
+		}
+		item.UpdateStatus(Failed, fmt.Sprintf("failed at epoch %d: %v", i, err))
+		// TODO: ?? delay
 	}
 }
 
@@ -263,7 +330,7 @@ func (item *Task) Remove(by, reason string) bool {
 
 	item.mutex.Lock()
 	_, _ = item.kill()
-	item.updateStatus(Removed, fmt.Errorf("by:%s, reason:%s", by, reason))
+	item.updateStatus(Removed, fmt.Sprintf("by:%s, reason:%s", by, reason))
 	item.mutex.Unlock()
 	return true
 }
@@ -277,12 +344,12 @@ func (item *Task) kill() (ok bool, err error) {
 		}
 	}()
 	// TODO send a term signal to process
-	if item.getStatus() == Running {
+	status := item.getStatus()
+	// fmt.Println("~~~", status)
+	if status == Running || status == Cancelled {
 		ok = true
 		err = item.cmd.Process.Kill()
-		return
 	}
 
-	ok = false
 	return
 }
