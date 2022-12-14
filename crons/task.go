@@ -227,7 +227,7 @@ func (item *Task) Run() {
 	item.setCmd()
 	for i := 0; i < int(item.MaxRetries)+1; i++ {
 		if i > 0 {
-			time.Sleep(3 * time.Second)
+			time.Sleep(RetryAfter)
 		}
 
 		if err = item.cmd.Start(); err != nil {
