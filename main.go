@@ -16,6 +16,7 @@ import (
 	"github.com/d2jvkpn/go-web/pkg/misc"
 	"github.com/d2jvkpn/go-web/pkg/wrap"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var (
@@ -102,8 +103,8 @@ func runCrons(config string) (err error) {
 	case sig := <-quit:
 		if _NotWindows {
 			fmt.Println("")
-			log.Println("received signal:", sig)
 		}
+		internal.Logger.Warn("received signal", zap.Any("signal", sig))
 
 		internal.Manager.Shutdown()
 		if _NotWindows {
@@ -154,8 +155,8 @@ func server(config, addr string, release bool) (err error) {
 	case sig := <-quit:
 		if _NotWindows {
 			fmt.Println("")
-			log.Println("received signal:", sig)
 		}
+		internal.Logger.Warn("received signal", zap.Any("signal", sig))
 
 		internal.Shutdown()
 		err = <-errch
