@@ -52,12 +52,15 @@ func main() {
 
 		fmt.Fprintf(
 			output,
-			"Registry: %s\nVersion: %s\n%s\n\nUsage of %s:\n",
+			"Registry: %s, Version: %s, OS: %s/%s\n",
 			project.GetString("project"),
 			project.GetString("version"),
-			misc.BuildInfoText(),
-			filepath.Base(os.Args[0]),
+			runtime.GOOS,
+			runtime.GOARCH,
 		)
+
+		fmt.Fprintf(output, "%s\n\nUsage of %s:\n", misc.BuildInfoText(), filepath.Base(os.Args[0]))
+
 		flag.PrintDefaults()
 
 		fmt.Fprintf(output, "\nConfig template:\n```yaml\n%s```\n", project.GetString("config"))
