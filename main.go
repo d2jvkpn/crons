@@ -67,11 +67,11 @@ func main() {
 	}
 	flag.Parse()
 
+	level := wrap.LogLevelFromStr("debug")
 	if release {
-		internal.Logger = wrap.NewLogger("logs/crons.log", wrap.LogLevelFromStr("info"), 256, nil)
-	} else {
-		internal.Logger = wrap.NewLogger("logs/crons.log", wrap.LogLevelFromStr("debug"), 256, nil)
+		level = wrap.LogLevelFromStr("info")
 	}
+	internal.Logger = wrap.NewLogger("logs/crons.log", level, 256, nil)
 
 	if addr != "" {
 		err = runServer(config, addr, release)
