@@ -2,7 +2,7 @@ project: https://github.com/d2jvkpn/crons
 version: 0.1.1
 
 usage: |
-  crons usage
+  crons usage...
 
 config: |
   jobs:
@@ -11,12 +11,12 @@ config: |
     path: sleep
     args: [70]
     workdir: ""
-    # https://crontab.guru/#00_00_*_*_1
+    # https://crontab.guru/#30_00_*_*_1
     cron:
-      minute: "*/1"
-      hour: "*"
+      minute: "30"
+      hour: "00"
       month_day: "*"
       month: "*"
-      week_day: "*"
+      week_day: "1"
     max_retries: 3
     start_immediately: true

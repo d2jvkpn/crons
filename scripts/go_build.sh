@@ -16,6 +16,7 @@ unpushed=$(git diff origin/$gitBranch..HEAD --name-status)
 [[ ! -z "$uncommitted$unpushed" ]] && gitTreeState="dirty"
 
 ldflags="\
+  -w -s \
   -X main.buildTime=${buildTime} \
   -X main.gitBranch=$gitBranch   \
   -X main.gitCommit=$gitCommit   \
@@ -24,6 +25,6 @@ ldflags="\
 
 mkdir -p target
 go build -ldflags="$ldflags" -o target/$Program main.go
-GOOS=linux   GOARCH=amd64 go build -o target/${Program}     -ldflags="-w -s $ldflags" main.go
-GOOS=windows GOARCH=amd64 go build -o target/${Program}.exe -ldflags="-w -s $ldflags" main.go
+GOOS=linux   GOARCH=amd64 go build -o target/${Program}     -ldflags="$ldflags" main.go
+GOOS=windows GOARCH=amd64 go build -o target/${Program}.exe -ldflags="$ldflags" main.go
 ls -lh target/${Program}*
