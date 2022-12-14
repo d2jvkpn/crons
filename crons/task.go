@@ -315,9 +315,9 @@ func (item *Task) run() {
 		if shouldAbort() {
 			return
 		}
-		item.UpdateStatus(Failed, fmt.Sprintf("failed at epoch %d: %v", i, err))
 		// TODO: ?? delay
 		// time.Sleep(RetryAfter)
+		item.UpdateStatus(Failed, fmt.Sprintf("failed at epoch %d: %v", i, err))
 	}
 }
 
