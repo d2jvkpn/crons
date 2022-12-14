@@ -71,7 +71,7 @@ func main() {
 	}
 
 	if addr != "" {
-		err = server(config, addr, release)
+		err = runServer(config, addr, release)
 	} else {
 		err = runCrons(config)
 	}
@@ -115,7 +115,7 @@ func runCrons(config string) (err error) {
 	return err
 }
 
-func server(config, addr string, release bool) (err error) {
+func runServer(config, addr string, release bool) (err error) {
 	var num int
 
 	parameters := map[string]any{
