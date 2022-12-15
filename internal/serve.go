@@ -4,21 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
-	"runtime"
 	"time"
 
 	"go.uber.org/zap"
 )
 
-func Serve(addr string, parameters map[string]any) (err error) {
-	Logger.Info(
-		"Server is starting",
-		zap.Any("parameters", parameters),
-		zap.String("address", addr),
-		zap.Int("pid", os.Getpid()),
-		zap.String("os", fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)),
-	)
+func Serve(addr string, meta map[string]any) (err error) {
+	Logger.Info("program", zap.Any("meta", meta))
+	Logger.Info("Server is starting", zap.String("address", addr))
 	_Server.Addr = addr
 
 	if err = _Server.ListenAndServe(); err != http.ErrServerClosed {

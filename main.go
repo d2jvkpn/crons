@@ -42,6 +42,9 @@ func main() {
 	if project, err = wrap.ConfigFromBytes(_Project, "yaml"); err != nil {
 		log.Fatalln(err)
 	}
+	meta := misc.BuildInfo()
+	meta["project"] = project.GetString("project")
+	meta["version"] = project.GetString("version")
 
 	flag.StringVar(&config, "config", "configs/local.yaml", "tasks config file")
 	flag.StringVar(&addr, "addr", "", "http serve address")
@@ -51,21 +54,20 @@ func main() {
 		output := flag.CommandLine.Output()
 
 		fmt.Fprintf(
-			output,
-			"Registry: %s, Version: %s, OS: %s/%s\n",
-			project.GetString("project"),
-			project.GetString("version"),
-			runtime.GOOS,
-			runtime.GOARCH,
+			output, "%s\n\nUsage of %s:\n",
+			misc.BuildInfoText(meta), filepath.Base(os.Args[0]),
 		)
-
-		fmt.Fprintf(output, "%s\n\nUsage of %s:\n", misc.BuildInfoText(), filepath.Base(os.Args[0]))
 
 		flag.PrintDefaults()
 
 		fmt.Fprintf(output, "\nConfig template:\n```yaml\n%s```\n", project.GetString("config"))
 	}
 	flag.Parse()
+
+	meta["-config"] = config
+	meta["-addr"] = addr
+	meta["-release"] = release
+	meta["pid"] = os.Getpid()
 
 	level := wrap.LogLevelFromStr("debug")
 	if release {
@@ -74,9 +76,9 @@ func main() {
 	internal.Logger = wrap.NewLogger("logs/crons.log", level, 256, nil)
 
 	if addr != "" {
-		err = runServer(config, addr, release)
+		err = runServer(config, addr, release, meta)
 	} else {
-		err = runCrons(config)
+		err = runCrons(config, meta)
 	}
 
 	internal.Logger.Down()
@@ -85,18 +87,15 @@ func main() {
 	}
 }
 
-func runCrons(config string) (err error) {
+func runCrons(config string, meta map[string]any) (err error) {
 	var num int
 
-	if num, err = internal.LoadCron(config, "jobs"); err != nil {
+	if num, err = internal.LoadCron(config, "jobs", meta); err != nil {
 		return err
 	}
 
 	internal.Manager.Start()
-	log.Printf(
-		">>> Number Of cron tasks: %d, Pid: %d\n",
-		num, os.Getpid(),
-	)
+	log.Printf(">>> Number Of cron tasks: %d, Pid: %v\n", num, meta["pid"])
 
 	quit := make(chan os.Signal, 1)
 
@@ -118,19 +117,10 @@ func runCrons(config string) (err error) {
 	return err
 }
 
-func runServer(config, addr string, release bool) (err error) {
+func runServer(config, addr string, release bool, meta map[string]any) (err error) {
 	var num int
 
-	parameters := map[string]any{
-		"-config":  config,
-		"-addr":    addr,
-		"-release": release,
-	}
-	for k, v := range misc.BuildInfo() {
-		parameters[k] = v
-	}
-
-	if num, err = internal.LoadCron(config, "jobs"); err != nil {
+	if num, err = internal.LoadCron(config, "jobs", meta); err != nil {
 		return err
 	}
 	if err = internal.Load(release); err != nil {
@@ -145,9 +135,9 @@ func runServer(config, addr string, release bool) (err error) {
 		var err error
 		log.Printf(
 			">>> HTTP server listening on %s, number Of cron tasks: %d, Pid: %d\n",
-			addr, num, os.Getpid(),
+			addr, num, meta["pid"],
 		)
-		err = internal.Serve(addr, parameters)
+		err = internal.Serve(addr, meta)
 		errch <- err
 	}()
 

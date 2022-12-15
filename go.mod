@@ -3,7 +3,7 @@ module crons
 go 1.19
 
 require (
-	github.com/d2jvkpn/go-web v0.0.0-20221212103002-96bb93adf99b
+	github.com/d2jvkpn/go-web v0.0.0-20221215011044-581de7786786
 	github.com/gin-gonic/gin v1.8.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.14.0
@@ -55,9 +55,9 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/goleak v1.2.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
-	golang.org/x/exp v0.0.0-20221211140036-ad323defaf05 // indirect
+	golang.org/x/exp v0.0.0-20221212164502-fae10dda9338 // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
