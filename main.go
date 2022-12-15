@@ -134,7 +134,7 @@ func runServer(config, addr string, release bool, meta map[string]any) (err erro
 	go func() {
 		var err error
 		log.Printf(
-			">>> HTTP server listening on %s, number Of cron tasks: %d, Pid: %d\n",
+			">>> HTTP server listening on %s, number Of cron tasks: %d, Pid: %v\n",
 			addr, num, meta["pid"],
 		)
 		err = internal.Serve(addr, meta)
