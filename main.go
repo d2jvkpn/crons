@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"syscall"
 
-	"crons/internal"
+	"github.com/d2jvkpn/crons/internal"
 
 	"github.com/d2jvkpn/go-web/pkg/misc"
 	"github.com/d2jvkpn/go-web/pkg/wrap"

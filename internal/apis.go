@@ -3,7 +3,7 @@ package internal
 import (
 	"strconv"
 
-	"crons/crons"
+	"github.com/d2jvkpn/crons/crons"
 
 	. "github.com/d2jvkpn/go-web/pkg/resp"
 	"github.com/gin-gonic/gin"

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"crons/crons"
+	"github.com/d2jvkpn/crons/crons"
 
 	"github.com/d2jvkpn/go-web/pkg/wrap"
 )

@@ -3,7 +3,7 @@ package internal
 import (
 	// "fmt"
 
-	"crons/crons"
+	"github.com/d2jvkpn/crons/crons"
 
 	"go.uber.org/zap"
 )

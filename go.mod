@@ -1,4 +1,4 @@
-module crons
+module github.com/d2jvkpn/crons
 
 go 1.19
 
