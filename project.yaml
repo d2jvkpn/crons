@@ -10,7 +10,7 @@ config: |
   - name: SLEEP
     path: sleep
     args: [70]
-    workdir: ""
+    work_dir: ""
     # https://crontab.guru/#30_00_*_*_1
     # At 00:30 on Monday.
     cron:
