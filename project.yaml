@@ -12,6 +12,7 @@ config: |
     args: [70]
     workdir: ""
     # https://crontab.guru/#30_00_*_*_1
+    # At 00:30 on Monday.
     cron:
       minute: "30"
       hour: "00"
