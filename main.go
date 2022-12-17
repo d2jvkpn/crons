@@ -103,7 +103,7 @@ func runCrons(config string, meta map[string]any) (err error) {
 
 	select {
 	case sig := <-quit:
-		if _NotWindows {
+		if sig == os.Interrupt && _NotWindows {
 			fmt.Println("")
 		}
 		internal.Logger.Warn("received signal", zap.Any("signal", sig))
@@ -146,7 +146,7 @@ func runServer(config, addr string, release bool, meta map[string]any) (err erro
 	select {
 	case err = <-errch:
 	case sig := <-quit:
-		if _NotWindows {
+		if sig == os.Interrupt && _NotWindows {
 			fmt.Println("")
 		}
 		internal.Logger.Warn("received signal", zap.Any("signal", sig))
