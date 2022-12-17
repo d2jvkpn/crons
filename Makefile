@@ -1,6 +1,10 @@
 build:
 	bash scripts/go_build.sh
 
-run:
+crons:
 	bash scripts/go_build.sh
-	target/crons
+	target/crons -config configs/local.yaml
+
+serve:
+	bash scripts/go_build.sh
+	target/crons -config configs/local.yaml -addr :8000
