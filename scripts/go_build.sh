@@ -27,4 +27,3 @@ mkdir -p target
 go build -ldflags="$ldflags" -o target/$Program main.go
 GOOS=linux   GOARCH=amd64 go build -o target/${Program}     -ldflags="$ldflags" main.go
 GOOS=windows GOARCH=amd64 go build -o target/${Program}.exe -ldflags="$ldflags" main.go
-ls -lh target/${Program}*

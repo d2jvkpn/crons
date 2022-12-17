@@ -14,7 +14,8 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-target
+target/
+release/
 wk_*/
 logs/
 configs/
