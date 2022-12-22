@@ -45,11 +45,11 @@ const (
 //}
 
 type Task struct {
-	Name    string   `mapstructure:"name" json:"name,omitempty"` //*
-	Path    string   `mapstructure:"path" json:"path,omitempty"` //*
-	Args    []string `mapstructure:"args" json:"args,omitempty"`
-	WorkDir string   `mapstructure:"work_dir" json:"workDir,omitempty"`
-	Cron    Cron     `mapstructure:"cron" json:"cron,omitempty"` //*
+	Name       string   `mapstructure:"name" json:"name,omitempty"` //*
+	Path       string   `mapstructure:"path" json:"path,omitempty"` //*
+	Args       []string `mapstructure:"args" json:"args,omitempty"`
+	WorkingDir string   `mapstructure:"working_dir" json:"workingDir,omitempty"`
+	Cron       Cron     `mapstructure:"cron" json:"cron,omitempty"` //*
 
 	StartImmediately bool `mapstructure:"start_immediately" json:"startImmediately,omitempty"`
 	MaxRetries       uint `mapstructure:"max_retries" json:"maxRetries,omitempty"`
@@ -120,7 +120,7 @@ func (item *Task) Compile() (err error) {
 func (item *Task) setCmd() {
 	// item.cmd = exec.CommandContext(ctx, item.Path, item.Args...)
 	item.cmd = exec.Command(item.Path, item.Args...)
-	item.cmd.Dir = item.WorkDir
+	item.cmd.Dir = item.WorkingDir
 }
 
 func (item *Task) WithLogger(logger *zap.Logger) *Task {
