@@ -15,6 +15,6 @@ serve:
 	bash scripts/go_build.sh
 	target/crons -config configs/local.yaml -addr :8000
 
-pack:
+release:
 	echo ">>> ${at}"
-	bash scripts/pack.sh
+	bash scripts/release.sh
