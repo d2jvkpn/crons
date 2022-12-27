@@ -82,7 +82,7 @@ func main() {
 	}
 
 	internal.Logger.Down()
-	if err != nil {
+	if err != nil && _NotWindows {
 		log.Fatalln(err)
 	}
 }
