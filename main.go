@@ -1,5 +1,7 @@
 package main
 
+//go:generate bash scripts/go_build.sh
+
 import (
 	_ "embed"
 	"flag"
