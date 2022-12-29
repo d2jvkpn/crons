@@ -298,7 +298,7 @@ func (item *Task) run() {
 
 	// fmt.Println(">>>", time.Now().Format(time.RFC3339))
 
-	for i := 0; i <= int(item.MaxRetries)+1; i++ {
+	for i := 0; i < int(item.MaxRetries)+1; i++ {
 		// fmt.Printf("~~~ %s, epoch: %d\n", time.Now().Format(time.RFC3339), i)
 		item.setCmd()
 		if err = item.cmd.Start(); err != nil {
