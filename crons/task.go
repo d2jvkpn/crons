@@ -170,16 +170,14 @@ func (item *Task) updateStatus(status Status, note string) {
 	} else {
 		item.Pid = 0
 	}
-	item.UpdatedAt, item.Note = now, note
 
 	fields := []zap.Field{
 		zap.String("from", string(item.Status)),
 		zap.String("to", string(status)),
-		zap.String("note", item.Note),
+		zap.String("note", note),
 		zap.Int("pid", item.Pid),
 	}
-
-	item.Status, item.UpdatedAt = status, time.Now()
+	item.UpdatedAt, item.Status, item.Note = now, status, note
 
 	switch status {
 	case Failed:
