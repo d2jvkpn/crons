@@ -10,7 +10,7 @@ import (
 )
 
 func Serve(addr string, meta map[string]any) (err error) {
-	Logger.Info("Server is starting", zap.String("address", addr), zap.Any("meta", meta))
+	Logger.Info("Server is starting", zap.Any("meta", meta))
 	_Server.Addr = addr
 
 	if err = _Server.ListenAndServe(); err != http.ErrServerClosed {
