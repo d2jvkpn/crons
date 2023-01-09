@@ -13,6 +13,8 @@ ls target/crons*
 ```
 
 ##### 1.2 配置文件 (yaml)
+**默认配置文件路径 configs/local.yaml, 可以使用 --config 进行指定**
+
 ```yaml
 jobs:
 # required: name, path, cron
@@ -42,12 +44,18 @@ jobs 下配置一组任务
   - month_day: string("*"), 日期;
   - month: string("*"), 月份;
   - week_day: string("*"), 星期 (0 表示周日);
-- max_retries: uint(0), 运行失败重试次数;
+- max_retries: uint(0), 一个定时执行周期内, 运行失败重试最大次数;
 - start_immediately: bool(false), 是否直接启动 (即不等待下一次 cron 时间);
+
+*示例中的 cron 配置为每周一 00:30 自动重启*
 
 ##### 1.3 运行
 ```bash
-./target/crons -config configs/local.yaml
+./target/crons -config=configs/local.yaml
+```
+
+```powershell
+.\crons.exe --config=configs/local.yaml
 ```
 
 #### 2. web
