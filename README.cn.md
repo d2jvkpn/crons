@@ -33,7 +33,7 @@ jobs:
   start_immediately: true
 ```
 
-jobs 下配置一组任务
+jobs 下一个任务的配置
 - *name: string, 任务名称;
 - *path: string, 执行文件名称或路径;
 - args: []string([]string{}), 命令参数列表;
@@ -57,6 +57,9 @@ jobs 下配置一组任务
 ```powershell
 .\crons.exe --config=configs/local.yaml
 ```
+
+#### 1.4 注意事项
+- 运行时, 保持终端窗口打开, 关闭窗口将关闭 crons 程序以及它控制的子进程;
 
 #### 2. web
 待开发...
