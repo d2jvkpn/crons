@@ -14,10 +14,10 @@ config: |
     # https://crontab.guru/#30_00_*_*_1
     # At 00:30 on Monday.
     cron:
-      minute: "30"
-      hour: "00"
+      minute: "*/1"
+      hour: "*"
       month_day: "*"
       month: "*"
-      week_day: "1"
+      week_day: "*"
     max_retries: 3
     start_immediately: true
