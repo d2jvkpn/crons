@@ -22,14 +22,14 @@ jobs:
   path: sleep
   args: [70]
   working_dir: ""
-  # https://crontab.guru/#00_00_*_*_1
+  # https://crontab.guru/#30_00_*_*_1
   cron:
-    minute: "*"
-    hour: "*"
+    minute: "30"
+    hour: "00"
     month_day: "*"
     month: "*"
-    week_day: "*/3"
-  max_retries: 2
+    week_day: "1"
+  max_retries: 15
   start_immediately: true
 ```
 
