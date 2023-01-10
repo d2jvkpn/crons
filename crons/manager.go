@@ -3,6 +3,7 @@ package crons
 import (
 	// "context"
 	"fmt"
+	"time"
 
 	"github.com/d2jvkpn/go-web/pkg/wrap"
 	"github.com/robfig/cron/v3"
@@ -24,17 +25,33 @@ func NewManager(logger *zap.Logger) *Manager {
 	}
 }
 
+func (m *Manager) intoRun(item *Task) func() {
+	return func() {
+		entry := m.cron.Entry(item.Id)
+
+		m.logger.Info(
+			"running task",
+			zap.Int("entryID", int(item.Id)),
+			zap.String("name", item.Name),
+			zap.String("prev", entry.Prev.Format(time.RFC3339)),
+			zap.String("next", entry.Next.Format(time.RFC3339)),
+		)
+
+		item.Run()
+	}
+}
+
 func (m *Manager) AddTask(item Task) (err error) {
 	if err = item.Compile(); err != nil {
 		return err
 	}
 
-	if item.Id, err = m.cron.AddFunc(item.CronExpr, item.Run); err != nil {
+	if item.Id, err = m.cron.AddFunc(item.CronExpr, m.intoRun(&item)); err != nil {
 		return err
 	}
 
 	item.Status = Created
-	item.WithLogger(m.logger.Named(fmt.Sprintf("EntryId_%d", item.Id)))
+	item.WithLogger(m.logger.Named(fmt.Sprintf("EntryId::%d", item.Id)))
 	m.tasks = append(m.tasks, &item)
 
 	m.logger.Info("add task", zap.Any("task", item))
@@ -127,11 +144,11 @@ func (m *Manager) CloneTasks(clear bool) (tasks []Task) {
 func (m *Manager) Start() {
 	for i := range m.tasks {
 		if m.tasks[i].StartImmediately {
-			go m.tasks[i].Run()
+			go m.intoRun(m.tasks[i])()
 		}
 	}
 
-	m.logger.Info("Start Cron", zap.Int("numberOfTasks", len(m.tasks)))
+	m.logger.Info("start cron", zap.Int("numberOfTasks", len(m.tasks)))
 	m.cron.Start()
 }
 

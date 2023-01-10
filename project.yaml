@@ -1,5 +1,5 @@
 project: https://github.com/d2jvkpn/crons
-version: 0.1.1
+version: 0.1.2
 
 usage: |
   crons usage...
@@ -7,7 +7,7 @@ usage: |
 config: |
   jobs:
   # required: name, path, cron
-  - name: SLEEP
+  - name: sleeping
     path: sleep
     args: [70]
     working_dir: ""

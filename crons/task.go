@@ -162,21 +162,22 @@ func (item *Task) UpdateStatus(status Status, note string) {
 func (item *Task) updateStatus(status Status, note string) {
 	now := time.Now()
 
+	fields := []zap.Field{
+		zap.String("from", string(item.Status)),
+		zap.String("to", string(status)),
+		zap.String("note", note),
+	}
+
 	if status == Running {
 		item.StartAt = now
 		if item.cmd.Process != nil {
 			item.Pid = item.cmd.Process.Pid
+			fields = append(fields, zap.Int("pid", item.Pid))
 		}
 	} else {
 		item.Pid = 0
 	}
 
-	fields := []zap.Field{
-		zap.String("from", string(item.Status)),
-		zap.String("to", string(status)),
-		zap.String("note", note),
-		zap.Int("pid", item.Pid),
-	}
 	item.UpdatedAt, item.Status, item.Note = now, status, note
 
 	switch status {
