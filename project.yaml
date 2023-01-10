@@ -11,7 +11,7 @@ config: |
     path: sleep
     args: [70]
     working_dir: ""
-    # https://crontab.guru/#30_00_*_*_1
+    # https://crontab.guru/#*/1_00_*_*_*
     # At 00:30 on Monday.
     cron:
       minute: "*/1"
