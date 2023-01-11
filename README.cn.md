@@ -23,12 +23,7 @@ jobs:
   args: [70]
   working_dir: ""
   # https://crontab.guru/#30_00_*_*_1
-  cron:
-    minute: "30"
-    hour: "00"
-    month_day: "*"
-    month: "*"
-    week_day: "1"
+  cron: { minute: "30", hour: "00", month_day: "*", month: "*", week_day: "1" }
   max_retries: 15
   start_immediately: true
 ```

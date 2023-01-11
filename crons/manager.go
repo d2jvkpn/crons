@@ -25,9 +25,13 @@ func NewManager(logger *zap.Logger) *Manager {
 	}
 }
 
+func (m *Manager) Entry(id cron.EntryID) cron.Entry {
+	return m.cron.Entry(id)
+}
+
 func (m *Manager) intoRun(item *Task) func() {
 	return func() {
-		entry := m.cron.Entry(item.Id)
+		entry := m.Entry(item.Id)
 
 		m.logger.Info(
 			"running task",
