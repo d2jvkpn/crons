@@ -29,7 +29,7 @@ func LoadAPI(rg *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 			return
 		}
 
-		JSON(ctx, gin.H{"item": task}, nil)
+		JSON(ctx, gin.H{"item": Manager.IntoTaskX1(&task)}, nil)
 	})
 
 	task.POST("/remove", func(ctx *gin.Context) {
@@ -52,7 +52,7 @@ func LoadAPI(rg *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 		var (
 			id   int
 			err  error
-			task *crons.Task
+			task *crons.TaskX1
 		)
 
 		id, _ = strconv.Atoi(ctx.DefaultQuery("id", "0"))
@@ -65,7 +65,7 @@ func LoadAPI(rg *gin.RouterGroup, handlers ...gin.HandlerFunc) {
 	})
 
 	task.GET("/find_all", func(ctx *gin.Context) {
-		tasks := Manager.CloneTasks(false)
+		tasks := Manager.FindAllTasks()
 		JSON(ctx, gin.H{"items": tasks}, nil)
 	})
 }

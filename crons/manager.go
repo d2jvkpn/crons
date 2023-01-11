@@ -118,7 +118,12 @@ func (m *Manager) RemoveTask(id int, by, reason string) (err error) {
 	return nil
 }
 
-func (m *Manager) FindTask(id int) (task *Task, err error) {
+func (m *Manager) IntoTaskX1(item *Task) *TaskX1 {
+	entry := m.Entry(item.Id)
+	return &TaskX1{Task: item, Prev: entry.Prev, Next: entry.Next}
+}
+
+func (m *Manager) FindTask(id int) (task *TaskX1, err error) {
 	var eId cron.EntryID
 
 	if id <= 0 {
@@ -128,18 +133,18 @@ func (m *Manager) FindTask(id int) (task *Task, err error) {
 	eId = cron.EntryID(id)
 	for _, v := range m.tasks {
 		if v.Id == eId {
-			return v, nil
+			return m.IntoTaskX1(v), nil
 		}
 	}
 
 	return nil, fmt.Errorf("task not found")
 }
 
-func (m *Manager) CloneTasks(clear bool) (tasks []Task) {
-	tasks = make([]Task, 0, len(m.tasks))
+func (m *Manager) FindAllTasks() (tasks []*TaskX1) {
+	tasks = make([]*TaskX1, 0, len(m.tasks))
 
 	for i := range m.tasks {
-		tasks = append(tasks, m.tasks[i].Clone(clear))
+		tasks = append(tasks, m.IntoTaskX1(m.tasks[i]))
 	}
 
 	return tasks

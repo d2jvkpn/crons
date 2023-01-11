@@ -69,6 +69,12 @@ type Task struct {
 	ch     chan struct{}
 }
 
+type TaskX1 struct {
+	*Task
+	Prev time.Time `json:"prev,omitempty"`
+	Next time.Time `json:"next,omitempty"`
+}
+
 type Cron struct {
 	Minute   string `mapstructure:"minute" json:"minute,omitempty"`
 	Hour     string `mapstructure:"hour" json:"hour,omitempty"`
