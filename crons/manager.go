@@ -95,7 +95,7 @@ func (m *Manager) RemoveTask(id int, by, reason string) (err error) {
 	)
 
 	if id <= 0 {
-		return fmt.Errorf("invalid id")
+		return fmt.Errorf("invalid id(entryID)")
 	}
 
 	eId = cron.EntryID(id)
@@ -113,7 +113,7 @@ func (m *Manager) RemoveTask(id int, by, reason string) (err error) {
 	m.cron.Remove(eId)
 	task.Remove(by, reason)
 	m.tasks = append(m.tasks[:idx], m.tasks[idx+1:]...)
-	m.logger.Warn("remove task", zap.Int("id", id))
+	m.logger.Warn("removing task", zap.Int("entryID", id))
 
 	return nil
 }
@@ -127,7 +127,7 @@ func (m *Manager) FindTask(id int) (task *TaskX1, err error) {
 	var eId cron.EntryID
 
 	if id <= 0 {
-		return nil, fmt.Errorf("invalid id")
+		return nil, fmt.Errorf("invalid id(entryID)")
 	}
 
 	eId = cron.EntryID(id)
@@ -165,8 +165,8 @@ func (m *Manager) Shutdown() {
 	m.cron.Stop()
 
 	for _, v := range m.tasks {
-		m.logger.Info("remove task", zap.Int("id", int(v.Id)))
+		m.logger.Info("removing task", zap.Int("entryID", int(v.Id)))
 		_ = v.Remove("manager", "shutdown")
 	}
-	m.logger.Info("Shutdown Cron", zap.Int("numberOfTasks", len(m.tasks)))
+	m.logger.Info("shutdown cron", zap.Int("numberOfTasks", len(m.tasks)))
 }
