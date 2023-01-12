@@ -77,6 +77,9 @@ func (m *Manager) LoadTasksFronConfig(p, field string) (num int, err error) {
 		return 0, err
 	}
 
+	if len(tasks) == 0 {
+		return 0, fmt.Errorf("no task(job) defined")
+	}
 	for i := range tasks {
 		if err = m.AddTask(tasks[i]); err != nil {
 			return num, err
