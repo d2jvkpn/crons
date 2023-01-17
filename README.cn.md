@@ -54,7 +54,7 @@ jobs 下一个任务的配置
 ```
 **参数列表**
 - -config, string(configs/local.yaml), 指定配置文件的路径;
-- -changeDir, bool(false), 运行前是否需要先切换到程序所在目录;
+- -go2self, bool(false), 运行前是否需要先切换到程序所在目录;
 
 #### 1.4 注意事项
 - 运行时, 保持终端窗口打开, 关闭窗口将关闭 crons 程序以及它控制的子进程;

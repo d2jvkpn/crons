@@ -34,12 +34,12 @@ func init() {
 
 func main() {
 	var (
-		release   bool
-		changeDir bool
-		addr      string
-		config    string
-		err       error
-		project   *viper.Viper
+		release bool
+		go2self bool
+		addr    string
+		config  string
+		err     error
+		project *viper.Viper
 	)
 
 	if project, err = wrap.ConfigFromBytes(_Project, "yaml"); err != nil {
@@ -51,7 +51,7 @@ func main() {
 
 	flag.StringVar(&config, "config", "configs/local.yaml", "tasks config file")
 	flag.StringVar(&addr, "addr", "", "http serve address")
-	flag.BoolVar(&changeDir, "changeDir", false, "change to directory of program")
+	flag.BoolVar(&go2self, "go2self", false, "change to directory of program")
 	flag.BoolVar(&release, "release", false, "run in release mode, work with -addr")
 
 	flag.Usage = func() {
@@ -68,10 +68,8 @@ func main() {
 	}
 	flag.Parse()
 
-	if changeDir {
-		p := os.Args[0]
-		p = filepath.Dir(p)
-		fmt.Println("~~~ change to diretory:", p)
+	if go2self {
+		p := filepath.Dir(os.Args[0])
 		if err = os.Chdir(p); err != nil {
 			log.Fatalln(err)
 		}
@@ -79,6 +77,7 @@ func main() {
 
 	meta["-config"] = config
 	meta["-addr"] = addr
+	meta["-go2self"] = go2self
 	meta["-release"] = release
 	meta["pid"] = os.Getpid()
 
