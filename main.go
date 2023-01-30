@@ -94,8 +94,12 @@ func main() {
 	}
 
 	internal.Logger.Down()
-	if err != nil && _NotWindows {
-		log.Fatalln(err)
+	if _NotWindows {
+		if err != nil {
+			log.Fatalln(err)
+		} else {
+			log.Println("<<< Exit")
+		}
 	}
 }
 
@@ -121,9 +125,6 @@ func runCrons(config string, meta map[string]any) (err error) {
 		internal.Logger.Warn("received signal", zap.Any("signal", sig))
 
 		internal.Manager.Shutdown()
-		if _NotWindows {
-			log.Println("<<< Stop Cron")
-		}
 	}
 
 	return err
@@ -168,9 +169,6 @@ func runServer(config, addr string, release bool, meta map[string]any) (err erro
 	}
 
 	internal.Manager.Shutdown()
-	if _NotWindows {
-		log.Println("<<< Stop Cron")
-	}
 
 	return err
 }

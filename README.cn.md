@@ -13,7 +13,7 @@ ls target/crons*
 ```
 
 ##### 1.2 配置文件 (yaml)
-**默认配置文件路径 configs/local.yaml, 可以使用 --config 进行指定**
+**默认配置文件路径 configs/local.yaml, 可以使用 -config 或 --config 进行指定**
 
 ```yaml
 jobs:
@@ -28,7 +28,7 @@ jobs:
   start_immediately: true
 ```
 
-jobs 下一个任务的配置
+jobs 下一个任务的配置 (* 表示必须参数)
 - *name: string, 任务名称;
 - *path: string, 执行文件名称或路径;
 - args: []string([]string{}), 命令参数列表;
