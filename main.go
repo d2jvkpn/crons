@@ -75,10 +75,13 @@ func main() {
 		}
 	}
 
-	meta["-config"] = config
-	meta["-addr"] = addr
-	meta["-go2self"] = go2self
-	meta["-release"] = release
+	if meta["working_dir"], err = os.Getwd(); err != nil {
+		log.Fatalln(err)
+	}
+
+	meta["config"] = config
+	meta["addr"] = addr
+	meta["release"] = release
 	meta["pid"] = os.Getpid()
 
 	level := wrap.LogLevelFromStr("debug")
@@ -120,10 +123,8 @@ func runCrons(config string, meta map[string]any) (err error) {
 	select {
 	case sig := <-quit:
 		if sig == os.Interrupt && _NotWindows {
-			fmt.Println("")
+			fmt.Println("... received:", sig)
 		}
-		internal.Logger.Warn("received signal", zap.Any("signal", sig))
-
 		internal.Manager.Shutdown()
 	}
 
